@@ -1,0 +1,36 @@
+,,,,,
+,TEAM1,TEAM2,,MM,11
+Teams,Belmont,Furman,,DD,10
+Acronyms,BEL,FUR,,YYYY,2023
+Conference,Missouri Valley,Southern,,,
+Coach,Evan Bradds,Bob Richey,,,
+Location,ERROR,ERROR,,,
+HAN,NEUTRAL,NEUTRAL,,ID,BEL-FUR-11-10
+ML,ERROR,ERROR,,Location,ERROR
+Spread,,,,Home,ERROR
+OverUnder,ERROR,ERROR,,Favorite,ERROR
+1H,31,46,,Line,ERROR
+2H,45,53,,OverUnder,ERROR
+OT,NA,NA,,ML1,ERROR
+TOTAL,76,99,,ML2,ERROR
+FGM,30,38,,1,ERROR
+FGA,69,73,,2,ERROR
+3M,3,12,,,
+3A,21,29,,,
+FTM,13,11,,,
+FTA,20,18,,,
+REB,34,51,,,
+OREB,7,14,,,
+DREB,27,37,,,
+AST,9,25,,,
+STL,10,6,,,
+BLK,5,5,,,
+TURN,10,14,,,
+POTURN,14,14,,,
+FBPTS,10,13,,,
+PTSPNT,52,50,,,
+FOUL,14,16,,,
+TECH,0,0,,,
+FLAG,0,0,,,
+LLEAD,2,23,,,
+PLEAD,NA,NA,,,
