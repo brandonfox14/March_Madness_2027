@@ -1,156 +1,107 @@
-import streamlit as st
-import pandas as pd
+def read_ap_weeks(path, modified):
+    """Parse Numbers AP export: WEEK1..WEEK20 across columns, labels down column A.
 
-# -------------------------------------------------------------
-# PAGE CONFIG
-# -------------------------------------------------------------
-st.set_page_config(page_title="March Metrics", layout="wide")
-
-# -------------------------------------------------------------
-# LOAD DATA
-# -------------------------------------------------------------
-@st.cache_data
-def load_data():
-    df = pd.read_csv(
-        "Data/26_March_Madness_Databook/All_Stats-THE_TABLE.csv",
-        encoding="latin1"
-    )
-    df.columns = df.columns.str.strip()
-    return df
-
-df = load_data()
-
-# -------------------------------------------------------------
-# PAGE HEADER
-# -------------------------------------------------------------
-# Centered title styling
-st.markdown(
+    Expects WEEK_START / MM / DD / YYYY / WEEK_END / MM / DD / YYYY,
+    followed by ranking rows with 1..25 in column A.
     """
-    <h1 style='text-align: center; color: black;'>
-        March Metrics
-    </h1>
-    """,
-    unsafe_allow_html=True
-)
+    raw = read_csv(Path(path), header=None, dtype=str, keep_default_na=False)
+    raw = raw.fillna("")
+    names = raw.iloc[0].astype(str).str.strip().str.upper().tolist()
+    week_columns = [(idx, name) for idx, name in enumerate(names) if re.fullmatch(r"WEEK\s*\d+", name)]
+    if not week_columns:
+        raise ValueError("AP poll file needs WEEK1, WEEK2, ... column headers.")
 
-st.markdown(
-    """
-    <div style='text-align: center; font-size: 16px; color: gray; margin-top: -10px;'>
-        A data-driven college basketball analytics platform
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+    labels = raw.iloc[:, 0].astype(str).str.strip().str.upper()
+    start_idx = labels[labels == "WEEK_START"].index.tolist()
+    end_idx = labels[labels == "WEEK_END"].index.tolist()
+    if not start_idx or not end_idx:
+        raise ValueError("AP poll file needs WEEK_START and WEEK_END in column A.")
+    start_row, end_row = start_idx[0], end_idx[0]
 
-st.markdown("---")
+    def date_below(section_row, col):
+        vals = {}
+        # Look only between this section marker and the next marker, or at most 5 lines.
+        limit = min(section_row + 6, len(raw))
+        for row in range(section_row + 1, limit):
+            tag = labels.iloc[row]
+            if tag in {"WEEK_START", "WEEK_END"}:
+                break
+            if tag in ("MM", "DD", "YYYY"):
+                vals[tag] = value_to_int(raw.iat[row, col])
+        if any(vals.get(k) is None for k in ("MM", "DD", "YYYY")):
+            return None
+        try:
+            return pd.Timestamp(year=vals["YYYY"], month=vals["MM"], day=vals["DD"])
+        except ValueError:
+            return None
 
-st.write(
-    """
-**March Metrics** integrates **statistical modeling**, **machine learning**, and **contextual metrics**
-to measure team and player performance beyond traditional box scores.
+    rank_rows = {}
+    for row, label in enumerate(labels):
+        rank = value_to_int(label)
+        if rank is not None and 1 <= rank <= 25:
+            rank_rows[rank] = row
 
-This page provides a snapshot of team strength across Division I programs,  
-based on quantitative indicators of efficiency, opponent difficulty, and coaching value.  
-All models are built using historical datasets and context-adjusted variables 
-to support predictive decision-making during the regular season and postseason.
-"""
-)
+    weeks = []
+    for col, week_name in week_columns:
+        begin = date_below(start_row, col)
+        finish = date_below(end_row, col)
+        teams = []
+        for rank in range(1, 26):
+            row = rank_rows.get(rank)
+            name = str(raw.iat[row, col]).strip() if row is not None else ""
+            teams.append(name)
+        if begin is not None and finish is not None and any(teams):
+            weeks.append({"week": week_name, "start": begin, "end": finish, "teams": teams})
+    return sorted(weeks, key=lambda w: w["start"])
 
-# -------------------------------------------------------------
-# TOP 10 TEAMS BY STATISTICAL STRENGTH
-# -------------------------------------------------------------
-st.markdown("---")
-st.subheader("Top 10 Teams by Statistical Strength")
 
-# Standardize and clean columns
-rename_map = {
-    "STAT_STREN": "Statistical Strength",
-    "Coach Name": "Coach Name",
-    "Conference": "Conference",
-    "Teams": "Teams",
-    "Wins": "Wins",
-    "Losses": "Losses"
-}
-df = df.rename(columns={k: v for k, v in rename_map.items() if k in df.columns})
+def choose_ap_week(weeks, day):
+    # Treat WEEK_END as the transition into the next week, e.g. Nov 8.
+    matches = [w for w in weeks if w["start"] <= day < w["end"]]
+    if matches:
+        return matches[-1]
+    # Last end date can be included when no later week exists.
+    matches = [w for w in weeks if w["start"] <= day <= w["end"]]
+    if matches:
+        return matches[-1]
+    return None
 
-df["Statistical Strength"] = pd.to_numeric(df["Statistical Strength"], errors="coerce")
 
-top10 = (
-    df[["Teams", "Coach Name", "Conference", "Wins", "Losses", "Statistical Strength"]]
-    .sort_values(by="Statistical Strength", ascending=True)
-    .head(10)
-    .reset_index(drop=True)
-)
-top10.index = top10.index + 1
+st.title("March Metrics")
+st.caption("2026–27 College Basketball")
 
-st.dataframe(
-    top10.style.format({
-        "Statistical Strength": "{:.3f}",
-        "Wins": "{:.0f}",
-        "Losses": "{:.0f}"
-    }).background_gradient(subset=["Statistical Strength"], cmap="Greens_r"),
-    use_container_width=True,
-)
+try:
+    date = get_current_day(str(CURRENT_DAY_FILE), CURRENT_DAY_FILE.stat().st_mtime_ns)
+    teams = get_all_teams(str(STATS_FILE), STATS_FILE.stat().st_mtime_ns)
+    weeks = read_ap_weeks(str(AP_FILE), AP_FILE.stat().st_mtime_ns)
+except FileNotFoundError as e:
+    st.error(f"Missing data file: {e.filename}")
+    st.stop()
+except (ValueError, KeyError, IndexError, pd.errors.ParserError) as e:
+    st.error(f"Could not read home page data: {e}")
+    st.stop()
 
-# -------------------------------------------------------------
-# SECTION PREVIEWS
-# -------------------------------------------------------------
-st.markdown("---")
-st.subheader("Explore Other Sections")
+active_week = choose_ap_week(weeks, date)
+st.write(f"**Databook date:** {date.strftime('%m/%d/%Y')}")
+left, right = st.columns(2, gap="medium")
 
-st.write(
-    """
-Each module in March Metrics focuses on a different layer of basketball intelligence,  
-ranging from team analytics to player modeling and betting projections.
-"""
-)
+with left:
+    st.subheader("March Metrics Top 25")
+    st.caption("TEMPORARY: first 25 teams alphabetically; NOT a rating ranking.")
+    march_df = pd.DataFrame({
+        "Position": range(1, min(25, len(teams)) + 1),
+        "Team": teams[:25],
+    })
+    st.dataframe(march_df, hide_index=True, use_container_width=True, height=920)
 
-preview_cols = st.columns(4)
-
-with preview_cols[0]:
-    st.markdown(
-        """
-        <div style="padding:15px; border-radius:12px; background-color:#E8F8F5;
-                    box-shadow:0px 4px 8px rgba(0,0,0,0.1); text-align:left; color:black;">
-            <h4>Team Breakdown</h4>
-            <p>Advanced efficiency metrics, contextualized by opponent and location.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-with preview_cols[1]:
-    st.markdown(
-        """
-        <div style="padding:15px; border-radius:12px; background-color:#FEF9E7;
-                    box-shadow:0px 4px 8px rgba(0,0,0,0.1); text-align:left; color:black;">
-            <h4>Team Comparison</h4>
-            <p>Side-by-side evaluation of multiple teams using predictive indicators.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-with preview_cols[2]:
-    st.markdown(
-        """
-        <div style="padding:15px; border-radius:12px; background-color:#FDEDEC;
-                    box-shadow:0px 4px 8px rgba(0,0,0,0.1); text-align:left; color:black;">
-            <h4>Clutch Performance</h4>
-            <p>Quantifies performance under late-game pressure using situational models.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-with preview_cols[3]:
-    st.markdown(
-        """
-        <div style="padding:15px; border-radius:12px; background-color:#EBF5FB;
-                    box-shadow:0px 4px 8px rgba(0,0,0,0.1); text-align:left; color:black;">
-            <h4>Schedule Predictor</h4>
-            <p>Forecasts future game outcomes and strength-of-schedule adjustments.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+with right:
+    st.subheader("AP Top 25")
+    if active_week is None:
+        st.info("No AP poll week matches the current databook date.")
+    else:
+        st.caption(f"{active_week['week']} · {active_week['start']:%m/%d/%Y} – {active_week['end']:%m/%d/%Y}")
+        ap_df = pd.DataFrame({
+            "Rank": range(1, 26),
+            "Team": [name if name else "—" for name in active_week["teams"]],
+        })
+        st.dataframe(ap_df, hide_index=True, use_container_width=True, height=920)
