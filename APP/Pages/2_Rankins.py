@@ -7,7 +7,7 @@ st.title("Rankings")
 
 # APP/Pages/2_Rankings.py -> March_Madness_2027
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATA_FILE = PROJECT_ROOT / "Data" / "27_March_Madness_Data" / "All_States.CSV"
+DATA_FILE = PROJECT_ROOT / "Data" / "27_March_Madness_Data" / "All_Stats-THE_TABLE.csv"
 
 if not DATA_FILE.is_file():
     st.error(f"File not found: {DATA_FILE}")
