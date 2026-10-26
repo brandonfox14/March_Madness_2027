@@ -42,6 +42,9 @@ FILES = {
 
 CURRENT_YEAR_MULTIPLIER = 3.0
 CONFERENCE_MULTIPLIER = 0.20
+# Historical component: 90% team/coach, at most 10% opponent-conference.
+TEAM_COACH_CONTEXT_SHARE = 0.90
+CONFERENCE_CONTEXT_SHARE = 0.10
 PRIOR_GAMES = 8.0
 MIN_SD = 8.0
 
@@ -599,69 +602,69 @@ def forecast_side(games, ctx):
             "Influence": imp
         })
 
+    # Separate team/coach contexts from any contexts involving opponent
+    # conference. This prevents the numerous opponent-conference combinations
+    # from unintentionally overpowering the team/coach contexts.
     for target in targets:
-        estimates = []
-        masses = []
-        variances = []
+        pool_results = {}
+        for pool_name in ("team_coach", "conference"):
+            estimates, masses, variances = [], [], []
+            for title, sub, imp in descriptions:
+                involves_conference = "Opp Conf" in title
+                if (pool_name == "conference") != involves_conference:
+                    continue
 
-        for title, sub, imp in descriptions:
-            vals = sub[target].to_numpy(dtype=float)
-            ws = sub["_WEIGHT"].to_numpy(dtype=float)
+                vals = sub[target].to_numpy(dtype=float)
+                ws = sub["_WEIGHT"].to_numpy(dtype=float)
+                mu, sd, effective = weighted_stats(vals, ws)
+                if not np.isfinite(mu):
+                    continue
+                reliability = effective / (effective + PRIOR_GAMES)
+                prior = global_mean[target]
+                if not np.isfinite(prior):
+                    prior = mu
+                estimates.append(reliability * mu + (1 - reliability) * prior)
+                masses.append(imp * reliability)
+                variances.append((sd if np.isfinite(sd) else 0.0) ** 2)
 
-            mu, sd, effective = weighted_stats(
-                vals, ws
-            )
+            if masses and sum(masses) > 0:
+                pool_mean = float(np.average(estimates, weights=masses))
+                within = float(np.average(variances, weights=masses))
+                between = float(np.average(
+                    (np.array(estimates) - pool_mean) ** 2,
+                    weights=masses
+                ))
+                pool_results[pool_name] = (pool_mean, within + between)
 
-            if not np.isfinite(mu):
-                continue
-
-            reliability = (
-                effective / (effective + PRIOR_GAMES)
-            )
-
-            prior = global_mean[target]
-
-            if not np.isfinite(prior):
-                prior = mu
-
-            adjusted = (
-                reliability * mu
-                + (1.0 - reliability) * prior
-            )
-
-            mass = imp * reliability
-
-            estimates.append(adjusted)
-            masses.append(mass)
-
-            variances.append(
-                (sd if np.isfinite(sd) else 0.0) ** 2
-            )
-
-        if masses and sum(masses) > 0:
-            predictions[target] = float(
-                np.average(estimates, weights=masses)
-            )
-
-            within = np.average(
-                variances, weights=masses
-            )
-
-            between = np.average(
-                (
-                    np.array(estimates)
-                    - predictions[target]
-                ) ** 2,
-                weights=masses
-            )
-
-            spreads[target] = float(
-                sqrt(max(0.0, within + between))
-            )
-
+        if "team_coach" in pool_results and "conference" in pool_results:
+            shares = {"team_coach": TEAM_COACH_CONTEXT_SHARE,
+                      "conference": CONFERENCE_CONTEXT_SHARE}
+        elif "team_coach" in pool_results:
+            shares = {"team_coach": 1.0}
+        elif "conference" in pool_results:
+            # Only a conference signal exists: do not pretend it represents
+            # 90% of the evidence; fall back to the broad historical mean.
+            shares = {"conference": CONFERENCE_CONTEXT_SHARE}
+            if np.isfinite(global_mean[target]):
+                pool_results["global_fallback"] = (
+                    global_mean[target],
+                    (global_sd[target] if np.isfinite(global_sd[target]) else MIN_SD) ** 2
+                )
+                shares["global_fallback"] = 1 - CONFERENCE_CONTEXT_SHARE
+            else:
+                shares = {"conference": 1.0}
         else:
             predictions[target] = global_mean[target]
             spreads[target] = global_sd[target]
+            continue
+
+        mu = sum(shares[k] * pool_results[k][0] for k in shares)
+        variance = sum(
+            shares[k] * (pool_results[k][1] + (pool_results[k][0] - mu) ** 2)
+            for k in shares
+        )
+        predictions[target] = float(mu)
+        spreads[target] = float(sqrt(max(0.0, variance)))
 
     for probability in [
         "OT_IND",
@@ -1007,6 +1010,59 @@ def show_probability(label, p):
     if np.isfinite(p):
         return f"{label}: {p:.1%}"
     return f"{label}: N/A"
+
+
+# ============================================================
+# BETTING ODDS AND PROBABILITY TABLES
+# ============================================================
+
+def valid_odds(value):
+    """American odds, including missing NA / blank cells."""
+    try:
+        x = float(value)
+        return x if np.isfinite(x) and x != 0 else np.nan
+    except (ValueError, TypeError):
+        return np.nan
+
+
+def american_implied(odds):
+    odds = valid_odds(odds)
+    if not np.isfinite(odds):
+        return np.nan
+    return 100.0 / (odds + 100.0) if odds > 0 else -odds / (-odds + 100.0)
+
+
+def edge_background(value):
+    """Difference in percentage points. +/-3 is white; +/-20 saturates."""
+    if not np.isfinite(value) or abs(value) <= 3:
+        return "background-color: #ffffff; color: #111111"
+    strength = min(1.0, (abs(value) - 3.0) / 17.0)
+    base = (255, 255, 255)
+    target = (34, 153, 84) if value > 0 else (207, 52, 52)
+    rgb = tuple(round(base[j] + strength * (target[j] - base[j])) for j in range(3))
+    font = "#ffffff" if strength > 0.72 else "#111111"
+    return f"background-color: rgb{rgb}; color: {font}; font-weight: bold"
+
+
+def betting_table(rows):
+    """Rows contain selection, odds, market probability, model probability."""
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return
+    df["Difference (pp)"] = (
+        df["Model Probability"] - df["Implied Probability"]
+    ) * 100
+    fmt = {
+        "Implied Probability": lambda x: f"{x:.1%}" if pd.notna(x) else "N/A",
+        "Model Probability": lambda x: f"{x:.1%}" if pd.notna(x) else "N/A",
+        "Difference (pp)": lambda x: f"{x:+.1f}%" if pd.notna(x) else "N/A",
+    }
+    st.dataframe(
+        df.style.format(fmt, na_rep="N/A").map(
+            edge_background, subset=["Difference (pp)"]
+        ),
+        hide_index=True, use_container_width=True
+    )
 
 
 # ============================================================
@@ -1410,88 +1466,71 @@ for _, fixture in todays.iterrows():
         )
 
         # ----------------------------------------------------
-        # SPREAD PREDICTION
+        # MARKET MONEYLINE: NORMALIZED TO 100% IF BOTH SIDES EXIST
         # ----------------------------------------------------
+        st.markdown("#### Betting probabilities")
+        raw1 = american_implied(fixture.get("ML1", np.nan))
+        raw2 = american_implied(fixture.get("ML2", np.nan))
+        if np.isfinite(raw1) and np.isfinite(raw2) and raw1 + raw2 > 0:
+            implied1 = raw1 / (raw1 + raw2)
+            implied2 = raw2 / (raw1 + raw2)
+            st.caption("Moneyline probabilities normalized to remove sportsbook margin.")
+        else:
+            implied1, implied2 = raw1, raw2
+            st.caption("A missing moneyline is shown as N/A; full-market normalization requires both sides.")
 
-        favorite = str(
-            fixture.get("Favorite", "")
-        ).strip().casefold()
+        st.markdown("**Moneyline**")
+        betting_table([
+            {"Selection": team1, "Odds": fixture.get("ML1", np.nan),
+             "Implied Probability": implied1, "Model Probability": win1},
+            {"Selection": team2, "Odds": fixture.get("ML2", np.nan),
+             "Implied Probability": implied2, "Model Probability": 1 - win1},
+        ])
 
-        spread = n(
-            fixture.get("Spread", np.nan)
-        )
+        # ----------------------------------------------------
+        # SPREAD: FAVORITE'S LISTED NEGATIVE LINE
+        # ----------------------------------------------------
+        favorite = str(fixture.get("Favorite", "")).strip().casefold()
+        spread = n(fixture.get("Spread", np.nan))
+        total_line = n(fixture.get("OverUnder", np.nan))
 
-        line = n(
-            fixture.get("OverUnder", np.nan)
-        )
-
-        if pd.notna(spread) and favorite:
-            abs_spread = abs(
-                float(spread)
-            )
-
-            if favorite in {
-                team1.casefold(),
-                acr1.casefold()
-            }:
-                signed = -abs_spread
-
-            elif favorite in {
-                team2.casefold(),
-                acr2.casefold()
-            }:
-                signed = abs_spread
-
+        st.markdown("**Spread**")
+        if pd.notna(spread):
+            magnitude = abs(float(spread))
+            if favorite in {team1.casefold(), acr1.casefold()}:
+                signed = -magnitude
+            elif favorite in {team2.casefold(), acr2.casefold()}:
+                signed = magnitude
             else:
                 signed = np.nan
 
             if np.isfinite(signed):
-                cover = normal_cdf(
-                    (margin + signed)
-                    / m["sd_margin"]
-                )
-
-                st.write(
-                    f"**Spread:** {team1} {signed:+.1f} · "
-                    + show_probability(
-                        "Model cover probability",
-                        cover
-                    )
-                )
-
+                cover1 = normal_cdf((margin + signed) / m["sd_margin"])
+                betting_table([
+                    {"Selection": f"{team1} {signed:+g}", "Odds": "—",
+                     "Implied Probability": 0.5, "Model Probability": cover1},
+                    {"Selection": f"{team2} {-signed:+g}", "Odds": "—",
+                     "Implied Probability": 0.5, "Model Probability": 1 - cover1},
+                ])
             else:
-                st.caption(
-                    "Spread available but favorite "
-                    "does not match either team."
-                )
-
+                st.caption("Favorite does not match either team; spread omitted.")
         else:
-            st.caption(
-                "Spread: not available in Schedule CSV."
-            )
+            st.caption("No spread listed.")
 
         # ----------------------------------------------------
-        # TOTAL PREDICTION
+        # TOTAL: OVER AND UNDER
         # ----------------------------------------------------
-
-        if pd.notna(line):
-            over = normal_cdf(
-                (total - float(line))
-                / m["sd_total"]
-            )
-
-            st.write(
-                f"**Over/Under:** {float(line):.1f} · "
-                + show_probability(
-                    "Model OVER probability",
-                    over
-                )
-            )
-
+        st.markdown("**Over / Under**")
+        if pd.notna(total_line):
+            over = normal_cdf((total - float(total_line)) / m["sd_total"])
+            betting_table([
+                {"Selection": f"Over {float(total_line):g}", "Odds": "—",
+                 "Implied Probability": 0.5, "Model Probability": over},
+                {"Selection": f"Under {float(total_line):g}", "Odds": "—",
+                 "Implied Probability": 0.5, "Model Probability": 1 - over},
+            ])
         else:
-            st.caption(
-                "Over/Under: not available in Schedule CSV."
-            )
+            st.caption("No total listed.")
 
         # ----------------------------------------------------
         # HISTORICAL MARKET PERFORMANCE
@@ -1586,19 +1625,16 @@ for _, fixture in todays.iterrows():
                 "Period": [
                     "First half",
                     "Second half",
-                    "Overtime (expected points)",
                     "Full game"
                 ],
                 team1: [
                     m["h1"],
                     m["s1"],
-                    m["o1"],
                     m["p1"]
                 ],
                 team2: [
                     m["h2"],
                     m["s2"],
-                    m["o2"],
                     m["p2"]
                 ],
             })
@@ -1618,7 +1654,7 @@ for _, fixture in todays.iterrows():
             )
 
             st.caption(
-                "1H, 2H, OT and full-game projections "
+                "1H, 2H and full-game projections "
                 "are currently estimated independently. "
                 "Period totals may not exactly add up."
             )
