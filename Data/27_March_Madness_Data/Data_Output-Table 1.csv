@@ -1,36 +1,36 @@
 ,,,,,
 ,TEAM1,TEAM2,,MM,11
-Teams,Belmont,Furman,,DD,1
-Acronyms,BEL,FUR,,YYYY,2026
-Conference,Missouri Valley,Southern,,,
-Coach,Evan Bradds,Bob Richey,,,
+Teams,Notre Dame,Villanova,,DD,2
+Acronyms,ND,VILL,,YYYY,2026
+Conference,ACC,Big East,,,
+Coach,Micah Shrewsberry,Kevin Willard,,,
 Location,ERROR,ERROR,,,
-HAN,NEUTRAL,NEUTRAL,,ID,BEL-FUR-11-1
+HAN,NEUTRAL,NEUTRAL,,ID,ND-VILL-11-2
 ML,ERROR,ERROR,,Location,ERROR
 Spread,,,,Home,ERROR
 OverUnder,ERROR,ERROR,,Favorite,ERROR
-1H,31,46,,Line,ERROR
-2H,45,53,,OverUnder,ERROR
+1H,31,35,,Line,ERROR
+2H,43,35,,OverUnder,ERROR
 OT,NA,NA,,ML1,ERROR
-TOTAL,76,99,,ML2,ERROR
-FGM,30,38,,1,ERROR
-FGA,69,73,,2,ERROR
-3M,3,12,,,
-3A,21,29,,,
-FTM,13,11,,,
-FTA,20,18,,,
-REB,34,51,,,
-OREB,7,14,,,
-DREB,27,37,,,
-AST,9,25,,,
-STL,10,6,,,
-BLK,5,5,,,
-TURN,10,14,,,
-POTURN,14,14,,,
-FBPTS,10,13,,,
-PTSPNT,52,50,,,
-FOUL,14,16,,,
-TECH,0,0,,,
-FLAG,0,0,,,
-LLEAD,2,23,,,
-PLEAD,NA,NA,,,
+TOTAL,74,70,,ML2,ERROR
+FGM,23,24,,1,ERROR
+FGA,65,52,,2,ERROR
+3M,9,11,,,
+3A,24,31,,,
+FTM,19,13,,,
+FTA,25,18,,,
+REB,37,37,,,
+OREB,17,10,,,
+DREB,20,27,,,
+AST,14,12,,,
+STL,14,6,,,
+BLK,2,4,,,
+TURN,11,20,,,
+POTURN,20,10,,,
+FBPTS,9,10,,,
+PTSPNT,22,18,,,
+FOUL,19,17,,,
+TECH,1,0,,,
+FLAG,0,1,,,
+LLEAD,4,10,,,
+PLEAD,10,83,,,
