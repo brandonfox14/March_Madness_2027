@@ -1,36 +1,36 @@
 ,,,,,
 ,TEAM1,TEAM2,,MM,11
-Teams,Notre Dame,Villanova,,DD,2
-Acronyms,ND,VILL,,YYYY,2026
-Conference,ACC,Big East,,,
-Coach,Micah Shrewsberry,Kevin Willard,,,
+Teams,Jackson State,Texas Tech,,DD,3
+Acronyms,JKST,TTU,,YYYY,2026
+Conference,SWAC,Big 12,,,
+Coach,Trey Johnson,Grant McCasland,,,
 Location,ERROR,ERROR,,,
-HAN,NEUTRAL,NEUTRAL,,ID,ND-VILL-11-2
+HAN,NEUTRAL,NEUTRAL,,ID,JKST-TTU-11-3
 ML,ERROR,ERROR,,Location,ERROR
 Spread,,,,Home,ERROR
 OverUnder,ERROR,ERROR,,Favorite,ERROR
-1H,31,35,,Line,ERROR
-2H,43,37,,OverUnder,ERROR
+1H,18,38,,Line,ERROR
+2H,24,38,,OverUnder,ERROR
 OT,NA,NA,,ML1,ERROR
-TOTAL,74,72,,ML2,ERROR
-FGM,23,24,,1,ERROR
-FGA,65,52,,2,ERROR
-3M,9,11,,,
-3A,24,31,,,
-FTM,19,13,,,
-FTA,25,18,,,
-REB,37,37,,,
-OREB,17,10,,,
-DREB,20,27,,,
-AST,14,12,,,
-STL,14,6,,,
-BLK,2,4,,,
-TURN,11,20,,,
-POTURN,20,10,,,
-FBPTS,9,10,,,
-PTSPNT,22,18,,,
-FOUL,19,17,,,
-TECH,1,0,,,
-FLAG,0,1,,,
-LLEAD,4,10,,,
-PLEAD,10,83,,,
+TOTAL,42,76,,ML2,ERROR
+FGM,14,25,,1,ERROR
+FGA,48,55,,2,ERROR
+3M,6,7,,,
+3A,29,30,,,
+FTM,8,19,,,
+FTA,14,31,,,
+REB,33,37,,,
+OREB,7,10,,,
+DREB,26,27,,,
+AST,7,14,,,
+STL,2,12,,,
+BLK,2,3,,,
+TURN,24,10,,,
+POTURN,6,29,,,
+FBPTS,0,17,,,
+PTSPNT,12,36,,,
+FOUL,23,17,,,
+TECH,0,0,,,
+FLAG,0,0,,,
+LLEAD,3,38,,,
+PLEAD,7,90,,,
