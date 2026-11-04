@@ -1,36 +1,36 @@
 ,,,,,
 ,TEAM1,TEAM2,,MM,11
-Teams,Jackson State,Texas Tech,,DD,3
-Acronyms,JKST,TTU,,YYYY,2026
-Conference,SWAC,Big 12,,,
-Coach,Trey Johnson,Grant McCasland,,,
+Teams,Central Michigan,Louisiana Monroe,,DD,4
+Acronyms,CMU,ULM,,YYYY,2026
+Conference,MAC,Sun Belt,,,
+Coach,Andy Bronkema,Ryan Cross,,,
 Location,ERROR,ERROR,,,
-HAN,NEUTRAL,NEUTRAL,,ID,JKST-TTU-11-3
+HAN,NEUTRAL,NEUTRAL,,ID,CMU-ULM-11-4
 ML,ERROR,ERROR,,Location,ERROR
 Spread,,,,Home,ERROR
 OverUnder,ERROR,ERROR,,Favorite,ERROR
-1H,18,38,,Line,ERROR
-2H,24,38,,OverUnder,ERROR
+1H,32,43,,Line,ERROR
+2H,51,35,,OverUnder,ERROR
 OT,NA,NA,,ML1,ERROR
-TOTAL,42,76,,ML2,ERROR
-FGM,14,25,,1,ERROR
-FGA,48,55,,2,ERROR
-3M,6,7,,,
-3A,29,30,,,
-FTM,8,19,,,
-FTA,14,31,,,
-REB,33,37,,,
-OREB,7,10,,,
-DREB,26,27,,,
-AST,7,14,,,
-STL,2,12,,,
-BLK,2,3,,,
-TURN,24,10,,,
-POTURN,6,29,,,
-FBPTS,0,17,,,
-PTSPNT,12,36,,,
-FOUL,23,17,,,
+TOTAL,83,78,,ML2,ERROR
+FGM,29,26,,1,ERROR
+FGA,62,65,,2,ERROR
+3M,12,8,,,
+3A,29,23,,,
+FTM,13,18,,,
+FTA,18,29,,,
+REB,40,38,,,
+OREB,16,18,,,
+DREB,24,20,,,
+AST,17,12,,,
+STL,8,14,,,
+BLK,8,5,,,
+TURN,16,12,,,
+POTURN,9,17,,,
+FBPTS,5,10,,,
+PTSPNT,30,28,,,
+FOUL,18,15,,,
 TECH,0,0,,,
 FLAG,0,0,,,
-LLEAD,3,38,,,
-PLEAD,7,90,,,
+LLEAD,5,14,,,
+PLEAD,17,73,,,

@@ -42,25 +42,26 @@ FILES = {
 
 CURRENT_YEAR_MULTIPLIER = 3.0
 CONFERENCE_MULTIPLIER = 0.20
-# Historical component: 90% team/coach, at most 10% opponent-conference.
-TEAM_COACH_CONTEXT_SHARE = 0.90
-CONFERENCE_CONTEXT_SHARE = 0.10
+TEAM_COACH_CONTEXT_SHARE = 0.95
+CONFERENCE_CONTEXT_SHARE = 0.05
 PRIOR_GAMES = 8.0
-MIN_SD = 8.0
+MIN_SD = 6.0
+TEAM_SCORE_SHARE = 0.75
+OPP_DEFENSE_SHARE = 0.25
+ML_CONTEXT_SHARE = 0.65
+ML_CONFERENCE_SHARE = 0.05
 
-ML_START_DATE = pd.Timestamp(2026, 12, 2)
-ML_INFLUENCE = 0.20
+ML_START_DATE = pd.Timestamp(2026, 11, 20)
+ML_INFLUENCE = 0.30
 ML_MIN_ROWS = 40
 
 OUTCOMES = [
     "1H", "OPP_1H",
     "2H", "OPP_2H",
-    "OT", "OPP_OT",
     "OT_IND",
     "PTS", "OPP_PTS",
 ]
 
-# Pregame game-log field -> current All_Stats field
 ML_FEATURE_MAP = {
     "GP": None,
     "WIN_PCT": "Win_Perc",
@@ -242,7 +243,6 @@ def prepare_games(df, source, current_date, catalog):
     out = df.copy()
     out["_DATE"] = find_date(out)
 
-    # Only use games completed BEFORE the selected date.
     out = out.loc[
         out["_DATE"].notna()
         & (out["_DATE"] < current_date)
@@ -259,7 +259,6 @@ def prepare_games(df, source, current_date, catalog):
         & out["OPP_PTS"].notna()
     ].copy()
 
-    # Historical market results
     out["WIN_RESULT"] = (
         out["PTS"] > out["OPP_PTS"]
     ).astype(float)
@@ -281,13 +280,19 @@ def prepare_games(df, source, current_date, catalog):
         np.nan
     )
 
+    out["WIN_MARGIN"] = out["PTS"] - out["OPP_PTS"]
+    out["COVER_MARGIN_CALC"] = out["WIN_MARGIN"] + out["SPREAD"]
+    out["OVER_MARGIN_CALC"] = out["PTS"] + out["OPP_PTS"] - out["TOTAL_LINE"]
+
     if out.empty:
         return out
 
     for col in [
         "TEAM", "OPP", "Coach",
-        "CONF", "OPP_CONF", "HAN"
+        "CONF", "OPP_CONF", "HAN", "FAVORITE"
     ]:
+        if col not in out.columns:
+            out[col] = ""
         out[col] = clean_text(out[col]).str.casefold()
 
     out["HAN"] = out["HAN"].str.upper()
@@ -545,6 +550,7 @@ def forecast_side(games, ctx):
 
     global_mean = {}
     global_sd = {}
+    team_history = games.loc[games["TEAM"] == ctx["TEAM"]]
 
     targets = OUTCOMES + [
         "WIN_RESULT",
@@ -586,6 +592,7 @@ def forecast_side(games, ctx):
 
     predictions = {}
     spreads = {}
+    pool_means = {}
     info = []
 
     for title, sub, imp in descriptions:
@@ -602,9 +609,6 @@ def forecast_side(games, ctx):
             "Influence": imp
         })
 
-    # Separate team/coach contexts from any contexts involving opponent
-    # conference. This prevents the numerous opponent-conference combinations
-    # from unintentionally overpowering the team/coach contexts.
     for target in targets:
         pool_results = {}
         for pool_name in ("team_coach", "conference"):
@@ -620,9 +624,11 @@ def forecast_side(games, ctx):
                 if not np.isfinite(mu):
                     continue
                 reliability = effective / (effective + PRIOR_GAMES)
-                prior = global_mean[target]
-                if not np.isfinite(prior):
-                    prior = mu
+                team_prior, _, _ = weighted_stats(
+                    team_history[target].to_numpy(dtype=float),
+                    team_history["_WEIGHT"].to_numpy(dtype=float)
+                ) if not team_history.empty else (np.nan, np.nan, 0.0)
+                prior = team_prior if np.isfinite(team_prior) else mu
                 estimates.append(reliability * mu + (1 - reliability) * prior)
                 masses.append(imp * reliability)
                 variances.append((sd if np.isfinite(sd) else 0.0) ** 2)
@@ -636,14 +642,16 @@ def forecast_side(games, ctx):
                 ))
                 pool_results[pool_name] = (pool_mean, within + between)
 
+        pool_means[target] = {
+            key: pair[0] for key, pair in pool_results.items()
+        }
+
         if "team_coach" in pool_results and "conference" in pool_results:
             shares = {"team_coach": TEAM_COACH_CONTEXT_SHARE,
                       "conference": CONFERENCE_CONTEXT_SHARE}
         elif "team_coach" in pool_results:
             shares = {"team_coach": 1.0}
         elif "conference" in pool_results:
-            # Only a conference signal exists: do not pretend it represents
-            # 90% of the evidence; fall back to the broad historical mean.
             shares = {"conference": CONFERENCE_CONTEXT_SHARE}
             if np.isfinite(global_mean[target]):
                 pool_results["global_fallback"] = (
@@ -684,6 +692,7 @@ def forecast_side(games, ctx):
     return {
         "mean": predictions,
         "sd": spreads,
+        "pools": pool_means,
         "detail": pd.DataFrame(info),
         "team_games": int(
             (games["TEAM"] == ctx["TEAM"]).sum()
@@ -695,79 +704,125 @@ def forecast_side(games, ctx):
 # COMBINE BOTH TEAM PERSPECTIVES
 # ============================================================
 
-def blend(a, b, a_key, b_key):
+def blend(a, b, a_key, b_key, share=TEAM_SCORE_SHARE):
     x = a["mean"].get(a_key, np.nan)
     y = b["mean"].get(b_key, np.nan)
-
     if np.isfinite(x) and np.isfinite(y):
-        return (x + y) / 2.0
+        return float(share * x + (1 - share) * y)
+    return float(x if np.isfinite(x) else y)
 
-    return x if np.isfinite(x) else y
+
+def context_component(side, target, pool):
+    return side.get("pools", {}).get(target, {}).get(pool, np.nan)
+
+
+def context_score(offense, defense, pool):
+    p_for = context_component(offense, "PTS", pool)
+    p_allowed = context_component(defense, "OPP_PTS", pool)
+    if np.isfinite(p_for) and np.isfinite(p_allowed):
+        return TEAM_SCORE_SHARE * p_for + OPP_DEFENSE_SHARE * p_allowed
+    if np.isfinite(p_for):
+        return p_for
+    if np.isfinite(p_allowed):
+        return p_allowed
+    return np.nan
+
+
+def scoring_dispersion(offense, defense):
+    s_for = offense["sd"].get("PTS", np.nan)
+    s_against = defense["sd"].get("OPP_PTS", np.nan)
+    if np.isfinite(s_for) and np.isfinite(s_against):
+        return float(max(MIN_SD, sqrt(
+            TEAM_SCORE_SHARE * s_for**2 + OPP_DEFENSE_SHARE * s_against**2
+        )))
+    if np.isfinite(s_for):
+        return float(max(MIN_SD, s_for))
+    if np.isfinite(s_against):
+        return float(max(MIN_SD, s_against))
+    return float(MIN_SD)
+
+
+def weighted_quantile(values, weights, q):
+    valid = np.isfinite(values) & np.isfinite(weights) & (weights > 0)
+    if not valid.any():
+        return np.nan
+    v = values[valid]
+    w = weights[valid]
+    order = np.argsort(v)
+    v, w = v[order], w[order]
+    cumulative = (np.cumsum(w) - 0.5 * w) / w.sum()
+    return float(np.interp(q, cumulative, v))
+
+
+def score_interval(offense, defense, games, predicted_mean, fallback_sd):
+    components = []
+    for ctx, score_col, share in (
+        (offense, "PTS", TEAM_SCORE_SHARE),
+        (defense, "OPP_PTS", OPP_DEFENSE_SHARE),
+    ):
+        sub = games.loc[games["TEAM"] == ctx["TEAM"]]
+        if sub.empty:
+            continue
+        values = sub[score_col].to_numpy(dtype=float)
+        weights = sub["_WEIGHT"].to_numpy(dtype=float)
+        valid = np.isfinite(values) & np.isfinite(weights) & (weights > 0)
+        if not valid.any():
+            continue
+        values, weights = values[valid], weights[valid]
+        effective = weights.sum() ** 2 / np.sum(weights ** 2)
+        if effective < 8:
+            continue
+        resid = values - np.average(values, weights=weights)
+        components.append((resid, weights / weights.sum(), share))
+    if not components or not np.isfinite(predicted_mean):
+        return (max(0, predicted_mean - 1.96 * fallback_sd),
+                predicted_mean + 1.96 * fallback_sd)
+    total_share = sum(item[2] for item in components)
+    residuals = np.concatenate([c[0] for c in components])
+    weights = np.concatenate([c[1] * c[2] / total_share for c in components])
+    lower = weighted_quantile(residuals, weights, 0.025)
+    upper = weighted_quantile(residuals, weights, 0.975)
+    lower = min(lower, -fallback_sd)
+    upper = max(upper, fallback_sd)
+    return (max(0.0, predicted_mean + lower), predicted_mean + upper)
 
 
 def model_matchup(first, second):
-    p1 = blend(first, second, "PTS", "OPP_PTS")
-    p2 = blend(second, first, "PTS", "OPP_PTS")
+    t1 = context_score(first, second, "team_coach")
+    t2 = context_score(second, first, "team_coach")
+    c1 = context_score(first, second, "conference")
+    c2 = context_score(second, first, "conference")
 
+    def combine(team, conf):
+        if np.isfinite(team) and np.isfinite(conf):
+            return TEAM_COACH_CONTEXT_SHARE * team + CONFERENCE_CONTEXT_SHARE * conf
+        return team if np.isfinite(team) else conf
+
+    p1, p2 = combine(t1, c1), combine(t2, c2)
     h1 = blend(first, second, "1H", "OPP_1H")
     h2 = blend(second, first, "1H", "OPP_1H")
-
     s1 = blend(first, second, "2H", "OPP_2H")
     s2 = blend(second, first, "2H", "OPP_2H")
-
-    o1 = blend(first, second, "OT", "OPP_OT")
-    o2 = blend(second, first, "OT", "OPP_OT")
-
-    ot_prob = np.nanmean([
-        first["mean"]["OT_IND"],
-        second["mean"]["OT_IND"]
-    ])
-
-    sd1 = max(
-        MIN_SD,
-        np.nanmean([
-            first["sd"]["PTS"],
-            second["sd"]["OPP_PTS"]
-        ])
-    )
-
-    sd2 = max(
-        MIN_SD,
-        np.nanmean([
-            second["sd"]["PTS"],
-            first["sd"]["OPP_PTS"]
-        ])
-    )
+    ot_values = [first["mean"].get("OT_IND", np.nan),
+                 second["mean"].get("OT_IND", np.nan)]
+    ot_values = [x for x in ot_values if np.isfinite(x)]
+    ot_prob = float(np.mean(ot_values)) if ot_values else np.nan
+    sd1 = scoring_dispersion(first, second)
+    sd2 = scoring_dispersion(second, first)
 
     return {
-        "p1": p1,
-        "p2": p2,
-        "h1": h1,
-        "h2": h2,
-        "s1": s1,
-        "s2": s2,
-        "o1": o1,
-        "o2": o2,
-        "ot_prob": ot_prob,
-        "sd1": sd1,
-        "sd2": sd2,
+        "p1": p1, "p2": p2, "h1": h1, "h2": h2,
+        "s1": s1, "s2": s2, "ot_prob": ot_prob,
+        "sd1": sd1, "sd2": sd2,
         "sd_margin": sqrt(sd1**2 + sd2**2),
-        "sd_total": sqrt(sd1**2 + sd2**2)
+        "sd_total": sqrt(sd1**2 + sd2**2),
+        "team1_context": t1, "team2_context": t2,
+        "team1_conference": c1, "team2_conference": c2,
     }
 
 
 # ============================================================
 # CURRENT-SEASON MACHINE LEARNING
-# ============================================================
-# Three methods:
-# 1. Ridge Regression
-# 2. Extra Trees Regression
-# 3. Histogram Gradient Boosting
-#
-# No team/coach/conference identifiers.
-# Only COMP_STAT completed games.
-# Only pregame columns used as predictors.
-# PTS and OPP_PTS are separate targets.
 # ============================================================
 
 def ml_feature_names():
@@ -954,9 +1009,9 @@ def ml_predict_matchup(ml, catalog, acr1, acr2):
     def row_for(a, b):
         return pd.DataFrame([{
             f: (
-                a if f.startswith("TEAM_PRE_")
-                else b
-            ).get(f, np.nan)
+                a.get(f, np.nan) if f.startswith("TEAM_PRE_")
+                else b.get("TEAM_PRE_" + f[len("OPP_PRE_"):], np.nan)
+            )
             for f in ml["features"]
         }])
 
@@ -987,8 +1042,8 @@ def ml_predict_matchup(ml, catalog, acr1, acr2):
         )
 
         individual[name] = (
-            (t1 + t2_allow) / 2,
-            (t2 + t1_allow) / 2
+            TEAM_SCORE_SHARE * t1 + OPP_DEFENSE_SHARE * t2_allow,
+            TEAM_SCORE_SHARE * t2 + OPP_DEFENSE_SHARE * t1_allow
         )
 
     return {
@@ -1017,7 +1072,6 @@ def show_probability(label, p):
 # ============================================================
 
 def valid_odds(value):
-    """American odds, including missing NA / blank cells."""
     try:
         x = float(value)
         return x if np.isfinite(x) and x != 0 else np.nan
@@ -1033,7 +1087,6 @@ def american_implied(odds):
 
 
 def edge_background(value):
-    """Difference in percentage points. +/-3 is white; +/-20 saturates."""
     if not np.isfinite(value) or abs(value) <= 3:
         return "background-color: #ffffff; color: #111111"
     strength = min(1.0, (abs(value) - 3.0) / 17.0)
@@ -1044,8 +1097,19 @@ def edge_background(value):
     return f"background-color: rgb{rgb}; color: {font}; font-weight: bold"
 
 
-def betting_table(rows):
-    """Rows contain selection, odds, market probability, model probability."""
+def model_win_background(probability):
+    if not np.isfinite(probability):
+        return ""
+    p = float(np.clip(probability, 0, 1))
+    neutral = (215, 215, 215)
+    target = (35, 155, 85) if p >= 0.5 else (205, 65, 65)
+    t = abs(p - 0.5) * 2.0
+    color = tuple(round(neutral[k] + t * (target[k] - neutral[k])) for k in range(3))
+    fg = "#ffffff" if t > 0.75 else "#111111"
+    return f"background-color: rgb{color}; color: {fg}; font-weight: bold"
+
+
+def betting_table(rows, shade_model=False):
     df = pd.DataFrame(rows)
     if df.empty:
         return
@@ -1057,12 +1121,110 @@ def betting_table(rows):
         "Model Probability": lambda x: f"{x:.1%}" if pd.notna(x) else "N/A",
         "Difference (pp)": lambda x: f"{x:+.1f}%" if pd.notna(x) else "N/A",
     }
-    st.dataframe(
-        df.style.format(fmt, na_rep="N/A").map(
-            edge_background, subset=["Difference (pp)"]
-        ),
-        hide_index=True, use_container_width=True
+    styled = df.style.format(fmt, na_rep="N/A").map(
+        edge_background, subset=["Difference (pp)"]
     )
+    if shade_model:
+        styled = styled.map(model_win_background, subset=["Model Probability"])
+    st.dataframe(styled, hide_index=True, use_container_width=True)
+
+
+# ============================================================
+# HISTORICAL +5/+10, -5/-10 MARGIN ANALYSIS
+# ============================================================
+
+def matchup_margin_history(games, side, ctx, column):
+    if games.empty or column not in games.columns:
+        return None
+    mask_team = games["TEAM"].eq(ctx["TEAM"])
+    mask_coach = games["Coach"].eq(ctx["Coach"]) if ctx["Coach"] else pd.Series(False, index=games.index)
+    chosen = games.loc[mask_team | mask_coach].copy()
+    if chosen.empty:
+        return None
+    team_match = chosen["TEAM"].eq(ctx["TEAM"]).to_numpy()
+    coach_match = chosen["Coach"].eq(ctx["Coach"]).to_numpy() if ctx["Coach"] else np.zeros(len(chosen), dtype=bool)
+    weights = chosen["_WEIGHT"].to_numpy(dtype=float) * (
+        1.0 + 1.5 * team_match + 0.4 * coach_match + 1.2 * (team_match & coach_match)
+    )
+    if ctx["HAN"] != "UNKNOWN":
+        weights *= np.where(chosen["HAN"].eq(ctx["HAN"]).to_numpy(), 1.3, 1.0)
+    values = n(chosen[column]).to_numpy(dtype=float)
+    good = np.isfinite(values) & np.isfinite(weights) & (weights > 0)
+    if not np.any(good):
+        return None
+    values, weights = values[good], weights[good]
+    effective = float(weights.sum()**2 / np.sum(weights**2))
+    return values, weights, effective
+
+
+def margin_thresholds(history):
+    if history is None:
+        return None
+    values, weights, effective = history
+    return {
+        "Hit +5": float(np.average(values >= 5.0, weights=weights)),
+        "Miss -5": float(np.average(values <= -5.0, weights=weights)),
+        "Hit +10": float(np.average(values >= 10.0, weights=weights)),
+        "Miss -10": float(np.average(values <= -10.0, weights=weights)),
+        "Effective games": effective,
+        "Rows": len(values)
+    }
+
+
+def historical_cover_rate_near_line(games, ctx, signed_spread):
+    if games.empty:
+        return np.nan, 0.0
+    sub = games.loc[games["TEAM"] == ctx["TEAM"]].copy()
+    if sub.empty:
+        return np.nan, 0.0
+    sub["SPREAD"] = n(sub["SPREAD"])
+    sub = sub.loc[
+        sub["COVER_RESULT"].notna()
+        & sub["SPREAD"].notna()
+        & ((sub["SPREAD"] - signed_spread).abs() <= 5)
+    ]
+    if sub.empty:
+        return np.nan, 0.0
+    weights = sub["_WEIGHT"].to_numpy(dtype=float)
+    if ctx["HAN"] != "UNKNOWN":
+        weights *= np.where(sub["HAN"].eq(ctx["HAN"]).to_numpy(), 1.3, 1.0)
+    outcome = sub["COVER_RESULT"].to_numpy(dtype=float)
+    effective = weights.sum() ** 2 / np.sum(weights**2)
+    return float(np.average(outcome, weights=weights)), float(effective)
+
+
+def empirical_cover_probability(first, second, ctx1, ctx2, margin, signed, sd_margin, games):
+    baseline = normal_cdf((margin + signed) / sd_margin)
+    hist1 = matchup_margin_history(games, first, ctx1, "WIN_MARGIN")
+    hist2 = matchup_margin_history(games, second, ctx2, "WIN_MARGIN")
+    if hist1 is None and hist2 is None:
+        return baseline
+
+    residual_values, residual_weights = [], []
+    for hist, reverse in ((hist1, False), (hist2, True)):
+        if hist is None:
+            continue
+        v, w, _ = hist
+        v = -v if reverse else v
+        centered = v - np.average(v, weights=w)
+        residual_values.append(centered)
+        residual_weights.append(w / w.sum())
+    if not residual_values:
+        return baseline
+    v = np.concatenate(residual_values)
+    w = np.concatenate(residual_weights)
+    bandwidth = max(2.0, 0.25 * sd_margin)
+    z = np.clip((margin + signed + v) / bandwidth, -30, 30)
+    empirical = float(np.average(1.0 / (1.0 + np.exp(-z)), weights=w))
+    samples = sum(h[2] for h in (hist1, hist2) if h is not None)
+    trust = 0.65 * samples / (samples + 15.0)
+    result = (1 - trust) * baseline + trust * empirical
+
+    ats1, effective1 = historical_cover_rate_near_line(games, ctx1, signed)
+    if np.isfinite(ats1):
+        ats_share = 0.15 * effective1 / (effective1 + 12.0)
+        result = (1 - ats_share) * result + ats_share * ats1
+    return float(np.clip(result, 0.005, 0.995))
 
 
 # ============================================================
@@ -1202,8 +1364,8 @@ st.caption(
 )
 
 st.info(
-    "Historical/context forecast + optional "
-    "current-season ML (20% after Dec 1). "
+    "Historical/team-coach context + optional "
+    "current-season ML (30% from Nov 20). "
     "Model weights and 95% intervals "
     "are provisional and not yet backtested."
 )
@@ -1216,7 +1378,7 @@ st.info(
 ml_engine = None
 
 ml_note = (
-    "ML inactive until December 2, 2026."
+    "ML inactive until November 20, 2026."
 )
 
 if today >= ML_START_DATE:
@@ -1240,7 +1402,7 @@ if today >= ML_START_DATE:
                 f"ML active: {ml_engine['rows']} "
                 "current-season team-game rows, "
                 "3 regressors per score target, "
-                "20% influence."
+                "30% influence."
             )
         else:
             ml_note = (
@@ -1258,17 +1420,13 @@ if todays.empty:
 
 
 # ============================================================
-# ### FUTURE GAME ORDERING BY TEAM RATINGS ###
+# FUTURE GAME ORDERING BY TEAM RATINGS
 # ============================================================
 
 # Once Rankings exposes a numeric Team Rating
 # keyed by Acronym, sort matchups by:
-#
 # Team1_Rating + Team2_Rating
-#
 # Highest combined rating first.
-#
-# Rankings are not yet built, so sorting remains off.
 
 
 # ============================================================
@@ -1365,6 +1523,9 @@ for _, fixture in todays.iterrows():
             )
             continue
 
+        ctx1 = make_context(acr1, acr2, fixture["Home_Team"], fixture.get("Location", ""), catalog)
+        ctx2 = make_context(acr2, acr1, fixture["Home_Team"], fixture.get("Location", ""), catalog)
+
         # ----------------------------------------------------
         # HISTORICAL PREDICTION
         # ----------------------------------------------------
@@ -1377,7 +1538,7 @@ for _, fixture in todays.iterrows():
         ml_prediction = None
 
         # ----------------------------------------------------
-        # ADD ML 20% WHEN AVAILABLE
+        # ADD ML WHEN AVAILABLE
         # ----------------------------------------------------
 
         if ml_engine is not None:
@@ -1389,15 +1550,17 @@ for _, fixture in todays.iterrows():
                     acr2
                 )
 
-                m["p1"] = (
-                    0.80 * m["p1"]
-                    + ML_INFLUENCE * ml_prediction["p1"]
-                )
-
-                m["p2"] = (
-                    0.80 * m["p2"]
-                    + ML_INFLUENCE * ml_prediction["p2"]
-                )
+                for idx in (1, 2):
+                    team_est = m.get(f"team{idx}_context", np.nan)
+                    conf_est = m.get(f"team{idx}_conference", np.nan)
+                    if not np.isfinite(team_est):
+                        team_est = m[f"p{idx}"]
+                    if np.isfinite(conf_est):
+                        history_score = (ML_CONTEXT_SHARE * team_est
+                                         + ML_CONFERENCE_SHARE * conf_est)
+                    else:
+                        history_score = (1 - ML_INFLUENCE) * team_est
+                    m[f"p{idx}"] = history_score + ML_INFLUENCE * ml_prediction[f"p{idx}"]
 
             except (
                 KeyError,
@@ -1407,6 +1570,9 @@ for _, fixture in todays.iterrows():
                 st.caption(
                     f"ML unavailable for this matchup: {exc}"
                 )
+
+        range1 = score_interval(ctx1, ctx2, games, m["p1"], m["sd1"])
+        range2 = score_interval(ctx2, ctx1, games, m["p2"], m["sd2"])
 
         # ----------------------------------------------------
         # PROJECTED SCORES
@@ -1421,10 +1587,10 @@ for _, fixture in todays.iterrows():
             )
 
             st.caption(
-                "Approx. 95% range: "
-                f"{max(0, m['p1'] - 1.96 * m['sd1']):.0f}"
+                "Uncalibrated 95% historical range: "
+                f"{range1[0]:.0f}"
                 "–"
-                f"{m['p1'] + 1.96 * m['sd1']:.0f}"
+                f"{range1[1]:.0f}"
             )
 
         with b:
@@ -1434,10 +1600,10 @@ for _, fixture in todays.iterrows():
             )
 
             st.caption(
-                "Approx. 95% range: "
-                f"{max(0, m['p2'] - 1.96 * m['sd2']):.0f}"
+                "Uncalibrated 95% historical range: "
+                f"{range2[0]:.0f}"
                 "–"
-                f"{m['p2'] + 1.96 * m['sd2']:.0f}"
+                f"{range2[1]:.0f}"
             )
 
         margin = m["p1"] - m["p2"]
@@ -1466,11 +1632,13 @@ for _, fixture in todays.iterrows():
         )
 
         # ----------------------------------------------------
-        # MARKET MONEYLINE: NORMALIZED TO 100% IF BOTH SIDES EXIST
+        # MONEYLINE
         # ----------------------------------------------------
+
         st.markdown("#### Betting probabilities")
         raw1 = american_implied(fixture.get("ML1", np.nan))
         raw2 = american_implied(fixture.get("ML2", np.nan))
+
         if np.isfinite(raw1) and np.isfinite(raw2) and raw1 + raw2 > 0:
             implied1 = raw1 / (raw1 + raw2)
             implied2 = raw2 / (raw1 + raw2)
@@ -1485,11 +1653,12 @@ for _, fixture in todays.iterrows():
              "Implied Probability": implied1, "Model Probability": win1},
             {"Selection": team2, "Odds": fixture.get("ML2", np.nan),
              "Implied Probability": implied2, "Model Probability": 1 - win1},
-        ])
+        ], shade_model=True)
 
         # ----------------------------------------------------
-        # SPREAD: FAVORITE'S LISTED NEGATIVE LINE
+        # SPREAD
         # ----------------------------------------------------
+
         favorite = str(fixture.get("Favorite", "")).strip().casefold()
         spread = n(fixture.get("Spread", np.nan))
         total_line = n(fixture.get("OverUnder", np.nan))
@@ -1505,7 +1674,12 @@ for _, fixture in todays.iterrows():
                 signed = np.nan
 
             if np.isfinite(signed):
-                cover1 = normal_cdf((margin + signed) / m["sd_margin"])
+                cover1 = empirical_cover_probability(
+                    first, second, ctx1, ctx2, margin, signed, m["sd_margin"], games
+                )
+
+                cover1 = min(cover1, win1) if signed < 0 else max(cover1, win1) if signed > 0 else win1
+
                 betting_table([
                     {"Selection": f"{team1} {signed:+g}", "Odds": "—",
                      "Implied Probability": 0.5, "Model Probability": cover1},
@@ -1518,8 +1692,9 @@ for _, fixture in todays.iterrows():
             st.caption("No spread listed.")
 
         # ----------------------------------------------------
-        # TOTAL: OVER AND UNDER
+        # TOTAL
         # ----------------------------------------------------
+
         st.markdown("**Over / Under**")
         if pd.notna(total_line):
             over = normal_cdf((total - float(total_line)) / m["sd_total"])
@@ -1568,10 +1743,87 @@ for _, fixture in todays.iterrows():
                 use_container_width=True
             )
 
+            st.markdown("**When listed as favorite (historical)**")
+            fav_rows = []
+            for label, ctx in ((team1, ctx1), (team2, ctx2)):
+                subset = games.loc[
+                    (games["TEAM"] == ctx["TEAM"])
+                    & (games["FAVORITE"] == ctx["TEAM"])
+                ] if "FAVORITE" in games.columns else pd.DataFrame()
+
+                if "FAVORITE" in games.columns:
+                    acronym = (acr1 if label == team1 else acr2).casefold()
+                    subset = games.loc[
+                        (games["TEAM"] == ctx["TEAM"])
+                        & (games["FAVORITE"].astype(str).str.strip().str.casefold().isin([ctx["TEAM"], acronym]))
+                    ]
+
+                row = {"Team": label, "Games": len(subset), "Win as favorite": np.nan, "Cover as favorite": np.nan}
+
+                if not subset.empty:
+                    w = subset["_WEIGHT"].to_numpy(dtype=float)
+                    for column, outname in (("WIN_RESULT", "Win as favorite"), ("COVER_RESULT", "Cover as favorite")):
+                        x = subset[column].to_numpy(dtype=float)
+                        mask = np.isfinite(x)
+                        if mask.any():
+                            row[outname] = float(np.average(x[mask], weights=w[mask]))
+                fav_rows.append(row)
+
+            st.dataframe(
+                pd.DataFrame(fav_rows).style.format({
+                    "Win as favorite": "{:.1%}", "Cover as favorite": "{:.1%}"
+                }, na_rep="N/A"),
+                hide_index=True, use_container_width=True
+            )
+
             st.caption(
                 "Historical rates use previous games "
                 "and historical betting lines, "
                 "not today's predicted scores."
+            )
+
+        # ----------------------------------------------------
+        # HISTORICAL MARGIN THRESHOLDS
+        # ----------------------------------------------------
+
+        with st.expander("Historical win / spread / total margins: ±5 and ±10"):
+            st.caption(
+                "Hit +5/+10 means the team exceeded the relevant threshold "
+                "by at least that many points; Miss -5/-10 means it fell "
+                "short by at least that many. Historical sportsbook lines "
+                "are used for ATS and totals, and current-season games "
+                "carry 3x weight. Effective games reflect concentration."
+            )
+
+            for heading, col in (
+                ("Moneyline: final winning margin", "WIN_MARGIN"),
+                ("Spread: margin relative to historical spread", "COVER_MARGIN_CALC"),
+                ("Total: points relative to historical O/U", "OVER_MARGIN_CALC"),
+            ):
+                results = []
+                for label, ctx in ((team1, ctx1), (team2, ctx2)):
+                    history = matchup_margin_history(games, None, ctx, col)
+                    rates = margin_thresholds(history)
+                    if rates is None:
+                        results.append({"Team": label, "Hit +5": np.nan,
+                                        "Miss -5": np.nan, "Hit +10": np.nan,
+                                        "Miss -10": np.nan, "Effective games": np.nan})
+                    else:
+                        results.append({"Team": label, **rates})
+                st.markdown(f"**{heading}**")
+                st.dataframe(
+                    pd.DataFrame(results).style.format({
+                        "Hit +5": "{:.1%}", "Miss -5": "{:.1%}",
+                        "Hit +10": "{:.1%}", "Miss -10": "{:.1%}",
+                        "Effective games": "{:.1f}"
+                    }, na_rep="N/A"),
+                    hide_index=True, use_container_width=True
+                )
+
+            st.caption(
+                "Favorite win percentage and favorite cover percentage are "
+                "different events. ATS historical margins are not the same "
+                "thing as today's spread probability."
             )
 
         # ----------------------------------------------------
@@ -1581,7 +1833,7 @@ for _, fixture in todays.iterrows():
         if ml_prediction is not None:
             with st.expander(
                 "Machine learning: three model "
-                "projections (20% blend)"
+                "projections (30% blend)"
             ):
                 st.caption(
                     "Trained only on completed COMP_STAT "
@@ -1688,8 +1940,8 @@ for _, fixture in todays.iterrows():
                 )
 
 st.caption(
-    "Predictions, probabilities, and intervals "
-    "have not yet been backtested or calibrated. "
+    "Score ranges use weighted historical tails and may not achieve "
+    "95% actual coverage. Probabilities and intervals have not been calibrated. "
     "When backtesting, All_Stats must reflect "
     "the selected historical date."
 )

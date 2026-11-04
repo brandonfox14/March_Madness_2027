@@ -301,9 +301,9 @@ Holy Cross,,,,,0
 ,Holy Cross,12,1,2030,0
 Houston,,,,,0
 ,Houston,12,1,2030,0
-Houston Christian,,,,,0
+Houston Christian,,,,,1
 ,Houston Christian,12,1,2030,0
-,Houston Christian,11,3,2026,0
+,Houston Christian,11,3,2026,1
 Howard,,,,,0
 ,Howard,12,1,2030,0
 Idaho,,,,,1
@@ -467,9 +467,9 @@ Mississippi Valley State,,,,,0
 ,Mississippi Valley State,12,1,2030,0
 Missouri,,,,,0
 ,Missouri,12,1,2030,0
-Missouri State,,,,,0
+Missouri State,,,,,1
 ,Missouri State,12,1,2030,0
-,Missouri State,11,3,2026,0
+,Missouri State,11,3,2026,1
 Monmouth,,,,,0
 ,Monmouth,12,1,2030,0
 Montana,,,,,0
@@ -513,10 +513,10 @@ New Haven,,,,,0
 ,New Haven,12,1,2030,0
 New Mexico,,,,,0
 ,New Mexico,12,1,2030,0
-New Mexico State,,,,,0
+New Mexico State,,,,,1
 ,New Mexico State,12,1,2030,0
 ,New Mexico State,12,1,2030,0
-,New Mexico State,11,3,2026,0
+,New Mexico State,11,3,2026,1
 Niagara,,,,,0
 ,Niagara,12,1,2030,0
 Nicholls State,,,,,1
@@ -535,9 +535,9 @@ North Alabama,,,,,0
 ,North Alabama,12,1,2030,0
 North Carolina,,,,,0
 ,North Carolina,12,1,2030,0
-North Carolina A&T,,,,,0
+North Carolina A&T,,,,,1
 ,North Carolina A&T,12,1,2030,0
-,North Carolina A&T,11,3,2026,0
+,North Carolina A&T,11,3,2026,1
 North Carolina Central,,,,,0
 ,North Carolina Central,12,1,2030,0
 ,North Carolina Central,12,1,2030,0
@@ -564,9 +564,9 @@ Northern Colorado,,,,,1
 ,Northern Colorado,11,2,2026,1
 Northern Illinois,,,,,0
 ,Northern Illinois,12,1,2030,0
-Northern Iowa,,,,,0
+Northern Iowa,,,,,1
 ,Northern Iowa,12,1,2030,0
-,Northern Iowa,11,3,2026,0
+,Northern Iowa,11,3,2026,1
 Northern Kentucky,,,,,0
 ,Northern Kentucky,12,1,2030,0
 Northwestern,,,,,0
@@ -600,9 +600,9 @@ Oregon,,,,,0
 Oregon State,,,,,0
 ,Oregon State,12,1,2030,0
 ,Oregon State,12,1,2030,0
-Pacific,,,,,0
+Pacific,,,,,1
 ,Pacific,12,1,2030,0
-,Pacific,11,3,2026,0
+,Pacific,11,3,2026,1
 Penn,,,,,0
 ,Penn,12,1,2030,0
 ,Penn,12,1,2030,0
@@ -617,9 +617,9 @@ Portland,,,,,1
 ,Portland,12,1,2030,0
 ,Portland,12,1,2030,0
 ,Portland,11,2,2026,1
-Portland State,,,,,0
+Portland State,,,,,1
 ,Portland State,12,1,2030,0
-,Portland State,11,3,2026,0
+,Portland State,11,3,2026,1
 Prairie View A&M,,,,,1
 ,Prairie View A&M,12,1,2030,0
 ,Prairie View A&M,12,1,2030,0
@@ -825,9 +825,9 @@ UAB,,,,,0
 UC Davis,,,,,0
 ,UC Davis,12,1,2030,0
 ,UC Davis,12,1,2030,0
-UC Irvine,,,,,0
+UC Irvine,,,,,1
 ,UC Irvine,12,1,2030,0
-,UC Irvine,11,3,2026,0
+,UC Irvine,11,3,2026,1
 UC Riverside,,,,,1
 ,UC Riverside,12,1,2030,0
 ,UC Riverside,12,1,2030,0
@@ -854,9 +854,9 @@ UMKC,,,,,0
 UNC Asheville,,,,,0
 ,UNC Asheville,12,1,2030,0
 ,UNC Asheville,11,4,2026,0
-UNC Greensboro,,,,,0
+UNC Greensboro,,,,,1
 ,UNC Greensboro,12,1,2030,0
-,UNC Greensboro,11,3,2026,0
+,UNC Greensboro,11,3,2026,1
 UNC Wilmington,,,,,1
 ,UNC Wilmington,12,1,2030,0
 ,UNC Wilmington,12,1,2030,0
@@ -957,10 +957,10 @@ Wofford,,,,,0
 ,Wofford,12,1,2030,0
 Wright State,,,,,0
 ,Wright State,12,1,2030,0
-Wyoming,,,,,0
+Wyoming,,,,,1
 ,Wyoming,12,1,2030,0
 ,Wyoming,12,1,2030,0
-,Wyoming,11,3,2026,0
+,Wyoming,11,3,2026,1
 Xavier,,,,,0
 ,Xavier,12,1,2030,0
 Yale,,,,,0
