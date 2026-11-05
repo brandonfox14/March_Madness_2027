@@ -1,36 +1,36 @@
 ,,,,,
 ,TEAM1,TEAM2,,MM,11
-Teams,Central Michigan,Louisiana Monroe,,DD,4
-Acronyms,CMU,ULM,,YYYY,2026
-Conference,MAC,Sun Belt,,,
-Coach,Andy Bronkema,Ryan Cross,,,
+Teams,Tennessee Martin,Tulane,,DD,5
+Acronyms,UTM,TULN,,YYYY,2026
+Conference,Ohio Valley,American,,,
+Coach,Jeremy Shulman,Ron Hunter,,,
 Location,ERROR,ERROR,,,
-HAN,NEUTRAL,NEUTRAL,,ID,CMU-ULM-11-4
+HAN,NEUTRAL,NEUTRAL,,ID,TULN-UTM-11-5
 ML,ERROR,ERROR,,Location,ERROR
 Spread,,,,Home,ERROR
 OverUnder,ERROR,ERROR,,Favorite,ERROR
-1H,32,43,,Line,ERROR
-2H,51,35,,OverUnder,ERROR
-OT,NA,NA,,ML1,ERROR
-TOTAL,83,78,,ML2,ERROR
-FGM,29,26,,1,ERROR
-FGA,62,65,,2,ERROR
-3M,12,8,,,
-3A,29,23,,,
-FTM,13,18,,,
-FTA,18,29,,,
-REB,40,38,,,
-OREB,16,18,,,
-DREB,24,20,,,
-AST,17,12,,,
-STL,8,14,,,
-BLK,8,5,,,
-TURN,16,12,,,
-POTURN,9,17,,,
-FBPTS,5,10,,,
-PTSPNT,30,28,,,
-FOUL,18,15,,,
+1H,37,35,,Line,ERROR
+2H,43,45,,OverUnder,ERROR
+OT,18,20,,ML1,ERROR
+TOTAL,98,100,,ML2,ERROR
+FGM,31,31,,1,ERROR
+FGA,66,66,,2,ERROR
+3M,17,6,,,
+3A,38,18,,,
+FTM,19,32,,,
+FTA,31,46,,,
+REB,41,41,,,
+OREB,12,11,,,
+DREB,29,30,,,
+AST,18,9,,,
+STL,5,12,,,
+BLK,5,2,,,
+TURN,16,9,,,
+POTURN,13,10,,,
+FBPTS,12,8,,,
+PTSPNT,24,40,,,
+FOUL,31,21,,,
 TECH,0,0,,,
 FLAG,0,0,,,
-LLEAD,5,14,,,
-PLEAD,17,73,,,
+LLEAD,9,4,,,
+PLEAD,50,37,,,
