@@ -1,36 +1,36 @@
 ,,,,,
 ,TEAM1,TEAM2,,MM,11
-Teams,Fairleigh Dickinson,Butler,,DD,7
-Acronyms,FDU,BTLR,,YYYY,2026
-Conference,NEC,Big East,,,
-Coach,Jack Castleberry,Ronald Nored,,,
+Teams,South Florida,DePaul,,DD,8
+Acronyms,USF,DEP,,YYYY,2026
+Conference,American,Big East,,,
+Coach,Chris Mack,Chris Holtmann,,,
 Location,ERROR,ERROR,,,
-HAN,NEUTRAL,NEUTRAL,,ID,BTLR-FDU-11-7
+HAN,NEUTRAL,NEUTRAL,,ID,DEP-USF-11-8
 ML,ERROR,ERROR,,Location,ERROR
 Spread,,,,Home,ERROR
 OverUnder,ERROR,ERROR,,Favorite,ERROR
-1H,29,52,,Line,ERROR
-2H,36,47,,OverUnder,ERROR
+1H,35,50,,Line,ERROR
+2H,45,32,,OverUnder,ERROR
 OT,NA,NA,,ML1,ERROR
-TOTAL,65,99,,ML2,ERROR
-FGM,25,36,,1,ERROR
-FGA,58,67,,2,ERROR
-3M,5,20,,,
-3A,21,43,,,
-FTM,10,7,,,
-FTA,16,16,,,
-REB,22,41,,,
-OREB,7,15,,,
-DREB,15,26,,,
-AST,12,31,,,
-STL,7,2,,,
-BLK,1,4,,,
-TURN,8,11,,,
-POTURN,11,4,,,
-FBPTS,6,9,,,
-PTSPNT,34,28,,,
-FOUL,19,17,,,
-TECH,1,1,,,
-FLAG,0,0,,,
-LLEAD,0,35,,,
-PLEAD,0,98,,,
+TOTAL,80,82,,ML2,ERROR
+FGM,28,28,,1,ERROR
+FGA,58,60,,2,ERROR
+3M,9,14,,,
+3A,26,32,,,
+FTM,15,12,,,
+FTA,19,17,,,
+REB,30,31,,,
+OREB,9,9,,,
+DREB,21,22,,,
+AST,17,19,,,
+STL,6,3,,,
+BLK,5,5,,,
+TURN,6,10,,,
+POTURN,17,7,,,
+FBPTS,19,4,,,
+PTSPNT,38,28,,,
+FOUL,18,17,,,
+TECH,0,0,,,
+FLAG,1,0,,,
+LLEAD,0,19,,,
+PLEAD,0,99,,,
