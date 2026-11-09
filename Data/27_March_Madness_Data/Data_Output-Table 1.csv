@@ -1,36 +1,36 @@
 ,,,,,
 ,TEAM1,TEAM2,,MM,11
-Teams,South Florida,DePaul,,DD,8
-Acronyms,USF,DEP,,YYYY,2026
-Conference,American,Big East,,,
-Coach,Chris Mack,Chris Holtmann,,,
+Teams,Mississippi Valley State,Oklahoma,,DD,9
+Acronyms,MVSU,OU,,YYYY,2026
+Conference,SWAC,SEC,,,
+Coach,Mike Davis,Porter Moser,,,
 Location,ERROR,ERROR,,,
-HAN,NEUTRAL,NEUTRAL,,ID,DEP-USF-11-8
+HAN,NEUTRAL,NEUTRAL,,ID,MVSU-OU-11-9
 ML,ERROR,ERROR,,Location,ERROR
 Spread,,,,Home,ERROR
 OverUnder,ERROR,ERROR,,Favorite,ERROR
-1H,35,50,,Line,ERROR
-2H,45,32,,OverUnder,ERROR
+1H,22,38,,Line,ERROR
+2H,35,46,,OverUnder,ERROR
 OT,NA,NA,,ML1,ERROR
-TOTAL,80,82,,ML2,ERROR
-FGM,28,28,,1,ERROR
-FGA,58,60,,2,ERROR
-3M,9,14,,,
-3A,26,32,,,
-FTM,15,12,,,
-FTA,19,17,,,
-REB,30,31,,,
-OREB,9,9,,,
-DREB,21,22,,,
-AST,17,19,,,
-STL,6,3,,,
-BLK,5,5,,,
-TURN,6,10,,,
-POTURN,17,7,,,
-FBPTS,19,4,,,
-PTSPNT,38,28,,,
-FOUL,18,17,,,
+TOTAL,57,84,,ML2,ERROR
+FGM,21,33,,1,ERROR
+FGA,58,70,,2,ERROR
+3M,3,13,,,
+3A,18,40,,,
+FTM,12,5,,,
+FTA,16,6,,,
+REB,32,42,,,
+OREB,13,17,,,
+DREB,19,25,,,
+AST,8,25,,,
+STL,8,12,,,
+BLK,4,4,,,
+TURN,17,12,,,
+POTURN,11,16,,,
+FBPTS,3,15,,,
+PTSPNT,34,40,,,
+FOUL,9,14,,,
 TECH,0,0,,,
-FLAG,1,0,,,
-LLEAD,0,19,,,
-PLEAD,0,99,,,
+FLAG,0,0,,,
+LLEAD,0,33,,,
+PLEAD,0,93,,,
