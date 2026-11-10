@@ -1939,6 +1939,208 @@ for _, fixture in todays.iterrows():
                     use_container_width=True
                 )
 
+        # ====================================================
+        # CURRENT YEAR GAMES — RESULTS & BETTING HISTORY
+        # ====================================================
+
+        with st.expander(
+            "Current Year Games — Results and Betting History"
+        ):
+            st.caption(
+                "Completed current-season games only. "
+                "Green = Win, Red = Loss, Gray = Push. "
+                "O/U results represent an OVER bet."
+            )
+
+            def format_number(value, signed=False):
+                try:
+                    value = float(value)
+                    if not np.isfinite(value):
+                        return "N/A"
+                    return (
+                        f"{value:+g}" if signed
+                        else f"{value:g}"
+                    )
+                except (ValueError, TypeError):
+                    return "N/A"
+
+            def result_color(value):
+                if value == "W":
+                    return (
+                        "background-color: #c9efd2; "
+                        "color: #14532d; font-weight: bold"
+                    )
+                if value == "L":
+                    return (
+                        "background-color: #f7c8c8; "
+                        "color: #7f1d1d; font-weight: bold"
+                    )
+                if value == "Push":
+                    return (
+                        "background-color: #e5e7eb; "
+                        "color: #374151; font-weight: bold"
+                    )
+                return ""
+
+            for display_team, display_acr in (
+                (team1, acr1),
+                (team2, acr2)
+            ):
+                st.markdown(f"**{display_team}**")
+
+                if current.empty:
+                    st.caption(
+                        "No completed current-season games."
+                    )
+                    continue
+
+                team_mask = current["TEAM"].eq(
+                    display_team.casefold().strip()
+                )
+
+                if "TEAM_ACR" in current.columns:
+                    team_mask = team_mask | (
+                        current["TEAM_ACR"]
+                        .astype(str)
+                        .str.strip()
+                        .str.upper()
+                        .eq(display_acr.upper())
+                    )
+
+                team_games = current.loc[
+                    team_mask
+                ].sort_values(
+                    "_DATE",
+                    ascending=False
+                )
+
+                rows = []
+
+                for _, game in team_games.iterrows():
+                    pts = n(game.get("PTS", np.nan))
+                    opp_pts = n(
+                        game.get("OPP_PTS", np.nan)
+                    )
+
+                    if pd.isna(pts) or pd.isna(opp_pts):
+                        continue
+
+                    margin = float(pts - opp_pts)
+                    game_spread = n(
+                        game.get("SPREAD", np.nan)
+                    )
+                    game_total = n(
+                        game.get("TOTAL_LINE", np.nan)
+                    )
+                    game_ml = valid_odds(
+                        game.get("ML", np.nan)
+                    )
+
+                    if np.isfinite(game_ml):
+                        ml_result = (
+                            "W" if margin > 0
+                            else "L" if margin < 0
+                            else "Push"
+                        )
+                    else:
+                        ml_result = "N/A"
+
+                    if pd.notna(game_spread):
+                        ats_margin = (
+                            margin + float(game_spread)
+                        )
+                        spread_result = (
+                            "W" if ats_margin > 0
+                            else "L" if ats_margin < 0
+                            else "Push"
+                        )
+                    else:
+                        spread_result = "N/A"
+
+                    if pd.notna(game_total):
+                        ou_margin = (
+                            float(pts + opp_pts)
+                            - float(game_total)
+                        )
+                        ou_result = (
+                            "W" if ou_margin > 0
+                            else "L" if ou_margin < 0
+                            else "Push"
+                        )
+                    else:
+                        ou_result = "N/A"
+
+                    date_value = game["_DATE"]
+
+                    rows.append({
+                        "Date": date_value.strftime(
+                            "%m/%d/%y"
+                        ),
+                        "Opponent": str(
+                            game.get("OPP", "")
+                        ).title(),
+                        "HAN": str(
+                            game.get("HAN", "")
+                        ).upper(),
+                        "Final": (
+                            f"{pts:g}–{opp_pts:g}"
+                        ),
+                        "ML Odds": (
+                            format_number(game_ml, True)
+                        ),
+                        "ML Result": ml_result,
+                        "Spread": format_number(
+                            game_spread, True
+                        ),
+                        "Spread Result": spread_result,
+                        "O/U": format_number(game_total),
+                        "Over Result": ou_result,
+                    })
+
+                if not rows:
+                    st.caption(
+                        "No completed games before "
+                        "the databook date."
+                    )
+                    continue
+
+                result_df = pd.DataFrame(rows)
+
+                def shade_current_row(row):
+                    styles = [
+                        "" for _ in row.index
+                    ]
+
+                    pairs = [
+                        ("ML Result", "ML Odds"),
+                        ("Spread Result", "Spread"),
+                        ("Over Result", "O/U"),
+                    ]
+
+                    for result_col, value_col in pairs:
+                        color = result_color(
+                            row[result_col]
+                        )
+                        styles[
+                            row.index.get_loc(result_col)
+                        ] = color
+                        styles[
+                            row.index.get_loc(value_col)
+                        ] = color
+
+                    return styles
+
+                st.dataframe(
+                    result_df.style.apply(
+                        shade_current_row,
+                        axis=1
+                    ),
+                    hide_index=True,
+                    use_container_width=True
+                )
+
+
+
 st.caption(
     "Score ranges use weighted historical tails and may not achieve "
     "95% actual coverage. Probabilities and intervals have not been calibrated. "
