@@ -18,9 +18,10 @@ Alabama A&M,,,,,2
 ,Alabama A&M,12,1,2030,0
 ,Alabama A&M,11,6,2026,1
 ,Alabama A&M,11,2,2026,1
-Alabama State,,,,,1
+Alabama State,,,,,2
 ,Alabama State,12,1,2030,0
 ,Alabama State,11,9,2026,1
+,Alabama State,11,11,2026,1
 Albany,,,,,1
 ,Albany,12,1,2030,0
 ,Albany,11,2,2026,1
@@ -49,11 +50,11 @@ Army,,,,,1
 ,Army,11,5,2026,1
 Auburn,,,,,0
 ,Auburn,12,1,2030,0
-Austin Peay,,,,,1
+Austin Peay,,,,,2
 ,Austin Peay,12,1,2030,0
 ,Austin Peay,12,1,2030,0
 ,Austin Peay,11,2,2026,1
-,Austin Peay,11,10,2026,0
+,Austin Peay,11,10,2026,1
 ,Austin Peay,11,17,2026,0
 ,Austin Peay,12,28,2026,0
 Ball State,,,,,1
@@ -63,16 +64,18 @@ Ball State,,,,,1
 Baylor,,,,,0
 ,Baylor,12,1,2030,0
 ,Baylor,12,1,2030,0
-Bellarmine,,,,,0
+Bellarmine,,,,,1
 ,Bellarmine,12,1,2030,0
+,Bellarmine,11,11,2026,1
 Belmont,,,,,1
 ,Belmont,12,1,2030,0
 ,Belmont,11,5,2026,1
 Bethune Cookman,,,,,0
 ,Bethune Cookman,12,1,2030,0
 ,Bethune Cookman,12,1,2030,0
-Binghamton,,,,,0
+Binghamton,,,,,1
 ,Binghamton,12,1,2030,0
+,Binghamton,11,11,2026,1
 Boise State,,,,,1
 ,Boise State,12,1,2030,0
 ,Boise State,12,1,2030,0
@@ -81,6 +84,7 @@ Boston College,,,,,0
 ,Boston College,12,1,2030,0
 Boston University,,,,,0
 ,Boston University,12,1,2030,0
+,Boston University,11,12,2026,0
 Bowling Green,,,,,0
 ,Bowling Green,12,1,2030,0
 Bradley,,,,,1
@@ -112,8 +116,10 @@ Cal State Bakersfield,,,,,1
 ,Cal State Bakersfield,11,5,2026,1
 Cal State Fullerton,,,,,0
 ,Cal State Fullerton,12,1,2030,0
+,Cal State Fullerton,11,12,2026,0
 Cal State Northridge,,,,,0
 ,Cal State Northridge,12,1,2030,0
+,Cal State Northridge,11,12,2026,0
 California,,,,,1
 ,California,12,1,2030,0
 ,California,11,2,2026,1
@@ -122,10 +128,10 @@ Campbell,,,,,0
 Canisius,,,,,1
 ,Canisius,12,1,2030,0
 ,Canisius,11,9,2026,1
-Central Arkansas,,,,,0
+Central Arkansas,,,,,1
 ,Central Arkansas,12,1,2030,0
 ,Central Arkansas,12,1,2030,0
-,Central Arkansas,11,10,2026,0
+,Central Arkansas,11,10,2026,1
 ,Central Arkansas,11,28,2026,0
 ,Central Arkansas,12,5,2026,0
 ,Central Arkansas,12,17,2026,0
@@ -161,6 +167,7 @@ Cleveland State,,,,,1
 Coastal Carolina,,,,,0
 ,Coastal Carolina,12,1,2030,0
 ,Coastal Carolina,12,1,2030,0
+,Coastal Carolina,11,12,2026,0
 Colgate,,,,,0
 ,Colgate,12,1,2030,0
 Colorado,,,,,0
@@ -221,17 +228,19 @@ East Tennessee State,,,,,1
 ,East Tennessee State,11,5,2026,1
 East Texas A&M,,,,,0
 ,East Texas A&M,12,1,2030,0
-Eastern Illinois,,,,,0
+Eastern Illinois,,,,,1
 ,Eastern Illinois,12,1,2030,0
 ,Eastern Illinois,12,1,2030,0
+,Eastern Illinois,11,11,2026,1
 Eastern Kentucky,,,,,2
 ,Eastern Kentucky,12,1,2030,0
 ,Eastern Kentucky,12,1,2030,0
 ,Eastern Kentucky,12,1,2030,0
 ,Eastern Kentucky,11,6,2026,1
 ,Eastern Kentucky,11,2,2026,1
-Eastern Michigan,,,,,0
+Eastern Michigan,,,,,1
 ,Eastern Michigan,12,1,2030,0
+,Eastern Michigan,11,11,2026,1
 Eastern Washington,,,,,0
 ,Eastern Washington,12,1,2030,0
 Elon,,,,,0
@@ -272,10 +281,10 @@ Furman,,,,,1
 ,Furman,12,1,2030,0
 ,Furman,12,1,2030,0
 ,Furman,11,4,2026,1
-Gardner Webb,,,,,0
+Gardner Webb,,,,,1
 ,Gardner Webb,12,1,2030,0
 ,Gardner Webb,12,1,2030,0
-,Gardner Webb,11,11,2026,0
+,Gardner Webb,11,11,2026,1
 ,Gardner Webb,12,18,2026,0
 ,Gardner Webb,12,2,2026,0
 George Mason,,,,,0
@@ -304,10 +313,10 @@ Green Bay,,,,,1
 ,Green Bay,12,1,2030,0
 ,Green Bay,12,1,2030,0
 ,Green Bay,11,2,2026,1
-Hampton,,,,,0
+Hampton,,,,,1
 ,Hampton,12,1,2030,0
 ,Hampton,12,1,2030,0
-,Hampton,11,10,2026,0
+,Hampton,11,10,2026,1
 Harvard,,,,,2
 ,Harvard,12,1,2030,0
 ,Harvard,12,1,2030,0
@@ -386,6 +395,7 @@ Kansas State,,,,,0
 Kennesaw State,,,,,1
 ,Kennesaw State,12,1,2030,0
 ,Kennesaw State,12,1,2030,0
+,Kennesaw State,11,12,2026,0
 ,Kennesaw State,11,2,2026,1
 Kent State,,,,,1
 ,Kent State,12,1,2030,0
@@ -395,13 +405,14 @@ Kentucky,,,,,0
 ,Kentucky,12,1,2030,0
 La Salle,,,,,0
 ,La Salle,12,1,2030,0
-Lafayette,,,,,1
+Lafayette,,,,,2
 ,Lafayette,12,1,2030,0
-,Lafayette,11,10,2026,0
+,Lafayette,11,10,2026,1
 ,Lafayette,11,5,2026,1
-Lamar,,,,,1
+Lamar,,,,,2
 ,Lamar,12,1,2030,0
 ,Lamar,12,1,2030,0
+,Lamar,11,11,2026,1
 ,Lamar,11,2,2026,1
 Le Moyne,,,,,1
 ,Le Moyne,12,1,2030,0
@@ -426,9 +437,9 @@ LIU,,,,,0
 ,LIU,12,1,2030,0
 Long Beach State,,,,,0
 ,Long Beach State,12,1,2030,0
-Longwood,,,,,1
+Longwood,,,,,2
 ,Longwood,12,1,2030,0
-,Longwood,11,10,2026,0
+,Longwood,11,10,2026,1
 ,Longwood,11,2,2026,1
 Louisiana,,,,,1
 ,Louisiana,12,1,2030,0
@@ -513,9 +524,9 @@ Mississippi Valley State,,,,,0
 ,Mississippi Valley State,12,1,2030,0
 Missouri,,,,,0
 ,Missouri,12,1,2030,0
-Missouri State,,,,,1
+Missouri State,,,,,2
 ,Missouri State,12,1,2030,0
-,Missouri State,11,10,2026,0
+,Missouri State,11,10,2026,1
 ,Missouri State,11,3,2026,1
 Monmouth,,,,,0
 ,Monmouth,12,1,2030,0
@@ -547,18 +558,19 @@ Navy,,,,,1
 ,Navy,11,8,2026,1
 Nebraska,,,,,0
 ,Nebraska,12,1,2030,0
-Nebraska Omaha,,,,,1
+Nebraska Omaha,,,,,2
 ,Nebraska Omaha,12,1,2030,0
 ,Nebraska Omaha,12,1,2030,0
-,Nebraska Omaha,11,10,2026,0
+,Nebraska Omaha,11,10,2026,1
 ,Nebraska Omaha,11,2,2026,1
-Nevada,,,,,0
+Nevada,,,,,1
 ,Nevada,12,1,2030,0
-,Nevada,11,11,2026,0
+,Nevada,11,11,2026,1
 ,Nevada,11,28,2026,0
-New Hampshire,,,,,0
+New Hampshire,,,,,1
 ,New Hampshire,12,1,2030,0
 ,New Hampshire,12,1,2030,0
+,New Hampshire,11,11,2026,1
 New Haven,,,,,0
 ,New Haven,12,1,2030,0
 New Mexico,,,,,0
@@ -608,14 +620,15 @@ Northeastern,,,,,0
 ,Northeastern,12,1,2030,0
 Northern Arizona,,,,,0
 ,Northern Arizona,12,1,2030,0
-Northern Colorado,,,,,1
+Northern Colorado,,,,,2
 ,Northern Colorado,12,1,2030,0
 ,Northern Colorado,12,1,2030,0
 ,Northern Colorado,12,1,2030,0
-,Northern Colorado,11,10,2026,0
+,Northern Colorado,11,10,2026,1
 ,Northern Colorado,11,2,2026,1
-Northern Illinois,,,,,0
+Northern Illinois,,,,,1
 ,Northern Illinois,12,1,2030,0
+,Northern Illinois,11,11,2026,1
 Northern Iowa,,,,,1
 ,Northern Iowa,12,1,2030,0
 ,Northern Iowa,11,3,2026,1
@@ -623,10 +636,10 @@ Northern Kentucky,,,,,0
 ,Northern Kentucky,12,1,2030,0
 Northwestern,,,,,0
 ,Northwestern,12,1,2030,0
-Northwestern State,,,,,0
+Northwestern State,,,,,1
 ,Northwestern State,12,1,2030,0
 ,Northwestern State,12,1,2030,0
-,Northwestern State,11,10,2026,0
+,Northwestern State,11,10,2026,1
 Notre Dame,,,,,0
 ,Notre Dame,12,1,2030,0
 Oakland,,,,,0
@@ -712,9 +725,10 @@ Rice,,,,,1
 Richmond,,,,,1
 ,Richmond,12,1,2030,0
 ,Richmond,11,5,2026,1
-Rider,,,,,0
+Rider,,,,,1
 ,Rider,12,1,2030,0
 ,Rider,12,1,2030,0
+,Rider,11,11,2026,1
 Robert Morris,,,,,0
 ,Robert Morris,12,1,2030,0
 ,Robert Morris,12,1,2030,0
@@ -819,8 +833,9 @@ St. Bonaventure,,,,,0
 ,St. Bonaventure,12,1,2030,0
 St. Johns,,,,,0
 ,St. Johns,12,1,2030,0
-St. Thomas,,,,,0
+St. Thomas,,,,,1
 ,St. Thomas,12,1,2030,0
+,St. Thomas,11,11,2026,1
 Stanford,,,,,0
 ,Stanford,12,1,2030,0
 Stephen F. Austin,,,,,2
@@ -864,20 +879,20 @@ Texas,,,,,0
 ,Texas,12,1,2030,0
 Texas A&M,,,,,0
 ,Texas A&M,12,1,2030,0
-Texas A&M Corpus Chris,,,,,0
+Texas A&M Corpus Chris,,,,,1
 ,Texas A&M Corpus Chris,12,1,2030,0
-,Texas A&M Corpus Chris,11,10,2026,0
-Texas Southern,,,,,0
+,Texas A&M Corpus Chris,11,10,2026,1
+Texas Southern,,,,,1
 ,Texas Southern,12,1,2030,0
-,Texas Southern,11,10,2026,0
+,Texas Southern,11,10,2026,1
 Texas State,,,,,1
 ,Texas State,12,1,2030,0
 ,Texas State,11,5,2026,1
 Texas Tech,,,,,0
 ,Texas Tech,12,1,2030,0
-The Citadel,,,,,1
+The Citadel,,,,,2
 ,The Citadel,12,1,2030,0
-,The Citadel,11,10,2026,0
+,The Citadel,11,10,2026,1
 ,The Citadel,11,6,2026,1
 Toledo,,,,,0
 ,Toledo,12,1,2030,0
@@ -897,8 +912,9 @@ UC Davis,,,,,1
 ,UC Davis,12,1,2030,0
 ,UC Davis,12,1,2030,0
 ,UC Davis,11,5,2026,1
-UC Irvine,,,,,1
+UC Irvine,,,,,2
 ,UC Irvine,12,1,2030,0
+,UC Irvine,11,11,2026,1
 ,UC Irvine,11,3,2026,1
 UC Riverside,,,,,1
 ,UC Riverside,12,1,2030,0
@@ -927,8 +943,9 @@ UMKC,,,,,0
 UNC Asheville,,,,,1
 ,UNC Asheville,12,1,2030,0
 ,UNC Asheville,11,4,2026,1
-UNC Greensboro,,,,,1
+UNC Greensboro,,,,,2
 ,UNC Greensboro,12,1,2030,0
+,UNC Greensboro,11,11,2026,1
 ,UNC Greensboro,11,3,2026,1
 UNC Wilmington,,,,,1
 ,UNC Wilmington,12,1,2030,0
@@ -938,8 +955,9 @@ UNLV,,,,,0
 ,UNLV,12,1,2030,0
 USC,,,,,0
 ,USC,12,1,2030,0
-USC Upstate,,,,,0
+USC Upstate,,,,,1
 ,USC Upstate,12,1,2030,0
+,USC Upstate,11,11,2026,1
 UT Arlington,,,,,2
 ,UT Arlington,12,1,2030,0
 ,UT Arlington,11,9,2026,1
@@ -983,9 +1001,10 @@ Virginia Tech,,,,,0
 VMI,,,,,0
 ,VMI,12,1,2030,0
 ,VMI,12,1,2030,0
-Wagner,,,,,0
+Wagner,,,,,1
 ,Wagner,12,1,2030,0
 ,Wagner,12,1,2030,0
+,Wagner,11,11,2026,1
 Wake Forest,,,,,0
 ,Wake Forest,12,1,2030,0
 Washington,,,,,0
@@ -1006,21 +1025,24 @@ West Georgia,,,,,0
 ,West Georgia,12,6,2026,0
 West Virginia,,,,,0
 ,West Virginia,12,1,2030,0
-Western Carolina,,,,,0
+Western Carolina,,,,,1
 ,Western Carolina,12,1,2030,0
 ,Western Carolina,12,1,2030,0
+,Western Carolina,11,10,2026,1
 Western Illinois,,,,,1
 ,Western Illinois,12,1,2030,0
 ,Western Illinois,11,9,2026,1
-Western Kentucky,,,,,1
+Western Kentucky,,,,,2
 ,Western Kentucky,12,1,2030,0
 ,Western Kentucky,12,1,2030,0
+,Western Kentucky,11,11,2026,1
 ,Western Kentucky,11,5,2026,1
 Western Michigan,,,,,1
 ,Western Michigan,12,1,2030,0
 ,Western Michigan,11,5,2026,1
-Wichita State,,,,,0
+Wichita State,,,,,1
 ,Wichita State,12,1,2030,0
+,Wichita State,11,11,2026,1
 William & Mary,,,,,1
 ,William & Mary,12,1,2030,0
 ,William & Mary,12,1,2030,0
@@ -1030,9 +1052,10 @@ Winthrop,,,,,0
 ,Winthrop,12,1,2030,0
 Wisconsin,,,,,0
 ,Wisconsin,12,1,2030,0
-Wofford,,,,,1
+Wofford,,,,,2
 ,Wofford,12,1,2030,0
 ,Wofford,12,1,2030,0
+,Wofford,11,10,2026,1
 ,Wofford,11,8,2026,1
 Wright State,,,,,0
 ,Wright State,12,1,2030,0
@@ -1048,48 +1071,25 @@ Yale,,,,,0
 Youngstown State,,,,,0
 ,Youngstown State,12,1,2030,0
 (blank),,,,,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
-,,11,10,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
+,,11,13,2026,0
