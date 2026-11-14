@@ -45,6 +45,7 @@ Arkansas Pine Bluff,,,,,0
 ,Arkansas Pine Bluff,12,1,2030,0
 Arkansas State,,,,,0
 ,Arkansas State,12,1,2030,0
+,Arkansas State,11,14,2026,0
 Army,,,,,1
 ,Army,12,1,2030,0
 ,Army,11,5,2026,1
@@ -232,11 +233,11 @@ Eastern Illinois,,,,,1
 ,Eastern Illinois,12,1,2030,0
 ,Eastern Illinois,12,1,2030,0
 ,Eastern Illinois,11,11,2026,1
-Eastern Kentucky,,,,,2
+Eastern Kentucky,,,,,3
 ,Eastern Kentucky,12,1,2030,0
 ,Eastern Kentucky,12,1,2030,0
 ,Eastern Kentucky,12,1,2030,0
-,Eastern Kentucky,11,13,2026,0
+,Eastern Kentucky,11,13,2026,1
 ,Eastern Kentucky,11,6,2026,1
 ,Eastern Kentucky,11,2,2026,1
 Eastern Michigan,,,,,1
@@ -266,6 +267,7 @@ Florida A&M,,,,,1
 ,Florida A&M,11,5,2026,1
 Florida Atlantic,,,,,0
 ,Florida Atlantic,12,1,2030,0
+,Florida Atlantic,11,14,2026,0
 Florida Gulf Coast,,,,,1
 ,Florida Gulf Coast,12,1,2030,0
 ,Florida Gulf Coast,12,1,2030,0
@@ -310,10 +312,10 @@ Grambling State,,,,,0
 ,Grambling State,12,1,2030,0
 Grand Canyon,,,,,0
 ,Grand Canyon,12,1,2030,0
-Green Bay,,,,,1
+Green Bay,,,,,2
 ,Green Bay,12,1,2030,0
 ,Green Bay,12,1,2030,0
-,Green Bay,11,13,2026,0
+,Green Bay,11,13,2026,1
 ,Green Bay,11,2,2026,1
 Hampton,,,,,1
 ,Hampton,12,1,2030,0
@@ -340,9 +342,9 @@ Holy Cross,,,,,0
 ,Holy Cross,12,1,2030,0
 Houston,,,,,0
 ,Houston,12,1,2030,0
-Houston Christian,,,,,1
+Houston Christian,,,,,2
 ,Houston Christian,12,1,2030,0
-,Houston Christian,11,13,2026,0
+,Houston Christian,11,13,2026,1
 ,Houston Christian,11,3,2026,1
 Howard,,,,,0
 ,Howard,12,1,2030,0
@@ -369,6 +371,7 @@ Indiana,,,,,0
 Indiana State,,,,,0
 ,Indiana State,12,1,2030,0
 ,Indiana State,12,1,2030,0
+,Indiana State,11,14,2026,0
 Iona,,,,,0
 ,Iona,12,1,2030,0
 Iowa,,,,,0
@@ -469,6 +472,7 @@ LSU,,,,,0
 LSU New Orleans,,,,,1
 ,LSU New Orleans,12,1,2030,0
 ,LSU New Orleans,12,1,2030,0
+,LSU New Orleans,11,14,2026,0
 ,LSU New Orleans,11,6,2026,1
 Maine,,,,,0
 ,Maine,12,1,2030,0
@@ -603,6 +607,7 @@ North Carolina,,,,,0
 ,North Carolina,12,1,2030,0
 North Carolina A&T,,,,,1
 ,North Carolina A&T,12,1,2030,0
+,North Carolina A&T,11,14,2026,0
 ,North Carolina A&T,11,3,2026,1
 North Carolina Central,,,,,0
 ,North Carolina Central,12,1,2030,0
@@ -664,6 +669,7 @@ Ole Miss,,,,,0
 Oral Roberts,,,,,1
 ,Oral Roberts,12,1,2030,0
 ,Oral Roberts,12,1,2030,0
+,Oral Roberts,11,14,2026,0
 ,Oral Roberts,11,6,2026,1
 Oregon,,,,,0
 ,Oregon,12,1,2030,0
@@ -719,6 +725,7 @@ Quinnipiac,,,,,0
 ,Quinnipiac,12,1,2030,0
 Radford,,,,,0
 ,Radford,12,1,2030,0
+,Radford,11,14,2026,0
 Rhode Island,,,,,0
 ,Rhode Island,12,1,2030,0
 Rice,,,,,1
@@ -867,10 +874,10 @@ Temple,,,,,0
 ,Temple,12,1,2030,0
 Tennessee,,,,,0
 ,Tennessee,12,1,2030,0
-Tennessee Martin,,,,,0
+Tennessee Martin,,,,,1
 ,Tennessee Martin,12,1,2030,0
 ,Tennessee Martin,12,1,2030,0
-,Tennessee Martin,11,13,2026,0
+,Tennessee Martin,11,13,2026,1
 Tennessee State,,,,,1
 ,Tennessee State,12,1,2030,0
 ,Tennessee State,12,1,2030,0
@@ -954,6 +961,7 @@ UNC Greensboro,,,,,2
 UNC Wilmington,,,,,1
 ,UNC Wilmington,12,1,2030,0
 ,UNC Wilmington,12,1,2030,0
+,UNC Wilmington,11,14,2026,0
 ,UNC Wilmington,11,2,2026,1
 UNLV,,,,,0
 ,UNLV,12,1,2030,0
@@ -996,16 +1004,17 @@ VCU,,,,,0
 ,VCU,12,1,2030,0
 Vermont,,,,,0
 ,Vermont,12,1,2030,0
+,Vermont,11,14,2026,0
 Villanova,,,,,0
 ,Villanova,12,1,2030,0
 Virginia,,,,,0
 ,Virginia,12,1,2030,0
 Virginia Tech,,,,,0
 ,Virginia Tech,12,1,2030,0
-VMI,,,,,0
+VMI,,,,,1
 ,VMI,12,1,2030,0
 ,VMI,12,1,2030,0
-,VMI,11,13,2026,0
+,VMI,11,13,2026,1
 Wagner,,,,,1
 ,Wagner,12,1,2030,0
 ,Wagner,12,1,2030,0
@@ -1016,9 +1025,11 @@ Washington,,,,,0
 ,Washington,12,1,2030,0
 Washington State,,,,,0
 ,Washington State,12,1,2030,0
+,Washington State,11,14,2026,0
 Weber State,,,,,0
 ,Weber State,12,1,2030,0
 ,Weber State,12,1,2030,0
+,Weber State,11,14,2026,0
 West Florida,,,,,2
 ,West Florida,12,1,2030,0
 ,West Florida,11,9,2026,1
@@ -1076,17 +1087,6 @@ Yale,,,,,0
 Youngstown State,,,,,0
 ,Youngstown State,12,1,2030,0
 (blank),,,,,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
 ,,11,14,2026,0
 ,,11,14,2026,0
 ,,11,14,2026,0

@@ -1,36 +1,36 @@
 ,,,,,
 ,TEAM1,TEAM2,,MM,11
-Teams,Delaware State,Georgetown,,DD,13
-Acronyms,DSU,GTWN,,YYYY,2026
-Conference,MEAC,Big East,,,
-Coach,Stan Waterman,Ed Cooley,,,
+Teams,Houston Christian,South Dakota,,DD,14
+Acronyms,HCU,SDAK,,YYYY,2026
+Conference,Southland,Summit,,,
+Coach,Craig Doty,Eric Peterson,,,
 Location,ERROR,ERROR,,,
-HAN,NEUTRAL,NEUTRAL,,ID,DSU-GTWN-11-13
+HAN,NEUTRAL,NEUTRAL,,ID,HCU-SDAK-11-14
 ML,ERROR,ERROR,,Location,ERROR
 Spread,,,,Home,ERROR
 OverUnder,ERROR,ERROR,,Favorite,ERROR
-1H,43,33,,Line,ERROR
-2H,35,50,,OverUnder,ERROR
+1H,44,34,,Line,ERROR
+2H,43,42,,OverUnder,ERROR
 OT,NA,NA,,ML1,ERROR
-TOTAL,78,83,,ML2,ERROR
-FGM,29,27,,1,ERROR
-FGA,54,55,,2,ERROR
-3M,9,8,,,
-3A,19,23,,,
-FTM,11,21,,,
-FTA,15,28,,,
-REB,30,32,,,
-OREB,8,12,,,
-DREB,22,20,,,
-AST,15,21,,,
-STL,8,4,,,
-BLK,1,3,,,
-TURN,15,12,,,
-POTURN,10,17,,,
-FBPTS,19,21,,,
-PTSPNT,24,36,,,
-FOUL,22,13,,,
+TOTAL,87,76,,ML2,ERROR
+FGM,32,26,,1,ERROR
+FGA,57,56,,2,ERROR
+3M,9,6,,,
+3A,23,25,,,
+FTM,14,18,,,
+FTA,19,23,,,
+REB,24,34,,,
+OREB,4,12,,,
+DREB,20,22,,,
+AST,10,14,,,
+STL,7,5,,,
+BLK,5,0,,,
+TURN,10,18,,,
+POTURN,23,14,,,
+FBPTS,9,12,,,
+PTSPNT,38,40,,,
+FOUL,21,20,,,
 TECH,0,0,,,
 FLAG,0,0,,,
-LLEAD,12,7,,,
-PLEAD,43,50,,,
+LLEAD,16,2,,,
+PLEAD,92,5,,,
