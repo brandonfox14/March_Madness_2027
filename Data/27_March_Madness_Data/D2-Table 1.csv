@@ -43,9 +43,9 @@ Arkansas,,,,,0
 Arkansas Pine Bluff,,,,,0
 ,Arkansas Pine Bluff,12,1,2030,0
 ,Arkansas Pine Bluff,12,1,2030,0
-Arkansas State,,,,,0
+Arkansas State,,,,,1
 ,Arkansas State,12,1,2030,0
-,Arkansas State,11,14,2026,0
+,Arkansas State,11,14,2026,1
 Army,,,,,1
 ,Army,12,1,2030,0
 ,Army,11,5,2026,1
@@ -74,6 +74,7 @@ Belmont,,,,,1
 Bethune Cookman,,,,,0
 ,Bethune Cookman,12,1,2030,0
 ,Bethune Cookman,12,1,2030,0
+,Bethune Cookman,11,15,2026,0
 Binghamton,,,,,1
 ,Binghamton,12,1,2030,0
 ,Binghamton,11,11,2026,1
@@ -265,12 +266,13 @@ Florida,,,,,0
 Florida A&M,,,,,1
 ,Florida A&M,12,1,2030,0
 ,Florida A&M,11,5,2026,1
-Florida Atlantic,,,,,0
+Florida Atlantic,,,,,1
 ,Florida Atlantic,12,1,2030,0
-,Florida Atlantic,11,14,2026,0
+,Florida Atlantic,11,14,2026,1
 Florida Gulf Coast,,,,,1
 ,Florida Gulf Coast,12,1,2030,0
 ,Florida Gulf Coast,12,1,2030,0
+,Florida Gulf Coast,11,15,2026,0
 ,Florida Gulf Coast,11,6,2026,1
 Florida State,,,,,0
 ,Florida State,12,1,2030,0
@@ -368,10 +370,10 @@ Incarnate Word,,,,,0
 ,Incarnate Word,12,1,2030,0
 Indiana,,,,,0
 ,Indiana,12,1,2030,0
-Indiana State,,,,,0
+Indiana State,,,,,1
 ,Indiana State,12,1,2030,0
 ,Indiana State,12,1,2030,0
-,Indiana State,11,14,2026,0
+,Indiana State,11,14,2026,1
 Iona,,,,,0
 ,Iona,12,1,2030,0
 Iowa,,,,,0
@@ -469,10 +471,10 @@ Loyola MD,,,,,1
 ,Loyola MD,11,9,2026,1
 LSU,,,,,0
 ,LSU,12,1,2030,0
-LSU New Orleans,,,,,1
+LSU New Orleans,,,,,2
 ,LSU New Orleans,12,1,2030,0
 ,LSU New Orleans,12,1,2030,0
-,LSU New Orleans,11,14,2026,0
+,LSU New Orleans,11,14,2026,1
 ,LSU New Orleans,11,6,2026,1
 Maine,,,,,0
 ,Maine,12,1,2030,0
@@ -605,9 +607,9 @@ North Alabama,,,,,1
 ,North Alabama,11,5,2026,1
 North Carolina,,,,,0
 ,North Carolina,12,1,2030,0
-North Carolina A&T,,,,,1
+North Carolina A&T,,,,,2
 ,North Carolina A&T,12,1,2030,0
-,North Carolina A&T,11,14,2026,0
+,North Carolina A&T,11,14,2026,1
 ,North Carolina A&T,11,3,2026,1
 North Carolina Central,,,,,0
 ,North Carolina Central,12,1,2030,0
@@ -666,10 +668,10 @@ Old Dominion,,,,,1
 ,Old Dominion,11,4,2026,1
 Ole Miss,,,,,0
 ,Ole Miss,12,1,2030,0
-Oral Roberts,,,,,1
+Oral Roberts,,,,,2
 ,Oral Roberts,12,1,2030,0
 ,Oral Roberts,12,1,2030,0
-,Oral Roberts,11,14,2026,0
+,Oral Roberts,11,14,2026,1
 ,Oral Roberts,11,6,2026,1
 Oregon,,,,,0
 ,Oregon,12,1,2030,0
@@ -723,9 +725,9 @@ Queens,,,,,0
 Quinnipiac,,,,,0
 ,Quinnipiac,12,1,2030,0
 ,Quinnipiac,12,1,2030,0
-Radford,,,,,0
+Radford,,,,,1
 ,Radford,12,1,2030,0
-,Radford,11,14,2026,0
+,Radford,11,14,2026,1
 Rhode Island,,,,,0
 ,Rhode Island,12,1,2030,0
 Rice,,,,,1
@@ -742,6 +744,7 @@ Rider,,,,,1
 Robert Morris,,,,,0
 ,Robert Morris,12,1,2030,0
 ,Robert Morris,12,1,2030,0
+,Robert Morris,11,15,2026,0
 Rutgers,,,,,0
 ,Rutgers,12,1,2030,0
 Sacramento State,,,,,1
@@ -807,6 +810,7 @@ South Carolina State,,,,,1
 South Dakota,,,,,1
 ,South Dakota,12,1,2030,0
 ,South Dakota,12,1,2030,0
+,South Dakota,11,15,2026,0
 ,South Dakota,11,2,2026,1
 South Dakota State,,,,,1
 ,South Dakota State,12,1,2030,0
@@ -877,6 +881,7 @@ Tennessee,,,,,0
 Tennessee Martin,,,,,1
 ,Tennessee Martin,12,1,2030,0
 ,Tennessee Martin,12,1,2030,0
+,Tennessee Martin,11,15,2026,0
 ,Tennessee Martin,11,13,2026,1
 Tennessee State,,,,,1
 ,Tennessee State,12,1,2030,0
@@ -885,6 +890,7 @@ Tennessee State,,,,,1
 ,Tennessee State,11,9,2026,1
 Tennessee Tech,,,,,1
 ,Tennessee Tech,12,1,2030,0
+,Tennessee Tech,11,15,2026,0
 ,Tennessee Tech,11,4,2026,1
 Texas,,,,,0
 ,Texas,12,1,2030,0
@@ -936,6 +942,7 @@ UC San Diego,,,,,1
 ,UC San Diego,11,2,2026,1
 UC Santa Barbara,,,,,1
 ,UC Santa Barbara,12,1,2030,0
+,UC Santa Barbara,11,15,2026,0
 ,UC Santa Barbara,11,2,2026,1
 UCF,,,,,0
 ,UCF,12,1,2030,0
@@ -958,10 +965,10 @@ UNC Greensboro,,,,,2
 ,UNC Greensboro,12,1,2030,0
 ,UNC Greensboro,11,11,2026,1
 ,UNC Greensboro,11,3,2026,1
-UNC Wilmington,,,,,1
+UNC Wilmington,,,,,2
 ,UNC Wilmington,12,1,2030,0
 ,UNC Wilmington,12,1,2030,0
-,UNC Wilmington,11,14,2026,0
+,UNC Wilmington,11,14,2026,1
 ,UNC Wilmington,11,2,2026,1
 UNLV,,,,,0
 ,UNLV,12,1,2030,0
@@ -1002,9 +1009,9 @@ Vanderbilt,,,,,0
 ,Vanderbilt,12,1,2030,0
 VCU,,,,,0
 ,VCU,12,1,2030,0
-Vermont,,,,,0
+Vermont,,,,,1
 ,Vermont,12,1,2030,0
-,Vermont,11,14,2026,0
+,Vermont,11,14,2026,1
 Villanova,,,,,0
 ,Villanova,12,1,2030,0
 Virginia,,,,,0
@@ -1023,13 +1030,13 @@ Wake Forest,,,,,0
 ,Wake Forest,12,1,2030,0
 Washington,,,,,0
 ,Washington,12,1,2030,0
-Washington State,,,,,0
+Washington State,,,,,1
 ,Washington State,12,1,2030,0
-,Washington State,11,14,2026,0
-Weber State,,,,,0
+,Washington State,11,14,2026,1
+Weber State,,,,,1
 ,Weber State,12,1,2030,0
 ,Weber State,12,1,2030,0
-,Weber State,11,14,2026,0
+,Weber State,11,14,2026,1
 West Florida,,,,,2
 ,West Florida,12,1,2030,0
 ,West Florida,11,9,2026,1
@@ -1084,26 +1091,47 @@ Xavier,,,,,0
 Yale,,,,,0
 ,Yale,12,1,2030,0
 ,Yale,12,1,2030,0
+,Yale,11,15,2026,0
 Youngstown State,,,,,0
 ,Youngstown State,12,1,2030,0
 (blank),,,,,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
-,,11,14,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
+,,11,15,2026,0
