@@ -71,10 +71,10 @@ Bellarmine,,,,,1
 Belmont,,,,,1
 ,Belmont,12,1,2030,0
 ,Belmont,11,5,2026,1
-Bethune Cookman,,,,,0
+Bethune Cookman,,,,,1
 ,Bethune Cookman,12,1,2030,0
 ,Bethune Cookman,12,1,2030,0
-,Bethune Cookman,11,15,2026,0
+,Bethune Cookman,11,15,2026,1
 Binghamton,,,,,1
 ,Binghamton,12,1,2030,0
 ,Binghamton,11,11,2026,1
@@ -207,6 +207,7 @@ Delaware State,,,,,1
 ,Delaware State,11,2,2026,1
 Denver,,,,,0
 ,Denver,12,1,2030,0
+,Denver,11,16,2026,0
 DePaul,,,,,0
 ,DePaul,12,1,2030,0
 Detroit Mercy,,,,,0
@@ -269,10 +270,10 @@ Florida A&M,,,,,1
 Florida Atlantic,,,,,1
 ,Florida Atlantic,12,1,2030,0
 ,Florida Atlantic,11,14,2026,1
-Florida Gulf Coast,,,,,1
+Florida Gulf Coast,,,,,2
 ,Florida Gulf Coast,12,1,2030,0
 ,Florida Gulf Coast,12,1,2030,0
-,Florida Gulf Coast,11,15,2026,0
+,Florida Gulf Coast,11,15,2026,1
 ,Florida Gulf Coast,11,6,2026,1
 Florida State,,,,,0
 ,Florida State,12,1,2030,0
@@ -296,6 +297,7 @@ George Mason,,,,,0
 ,George Mason,12,1,2030,0
 George Washington,,,,,0
 ,George Washington,12,1,2030,0
+,George Washington,11,16,2026,0
 Georgetown,,,,,0
 ,Georgetown,12,1,2030,0
 Georgia,,,,,0
@@ -454,6 +456,7 @@ Louisiana,,,,,1
 ,Louisiana,11,9,2026,1
 Louisiana Monroe,,,,,1
 ,Louisiana Monroe,12,1,2030,0
+,Louisiana Monroe,11,16,2026,0
 ,Louisiana Monroe,11,4,2026,1
 Louisiana Tech,,,,,1
 ,Louisiana Tech,12,1,2030,0
@@ -549,6 +552,7 @@ Montana State,,,,,0
 Morehead State,,,,,1
 ,Morehead State,12,1,2030,0
 ,Morehead State,12,1,2030,0
+,Morehead State,11,16,2026,0
 ,Morehead State,11,5,2026,1
 Morgan State,,,,,2
 ,Morgan State,12,1,2030,0
@@ -604,6 +608,7 @@ Norfolk State,,,,,2
 North Alabama,,,,,1
 ,North Alabama,12,1,2030,0
 ,North Alabama,12,1,2030,0
+,North Alabama,11,16,2026,0
 ,North Alabama,11,5,2026,1
 North Carolina,,,,,0
 ,North Carolina,12,1,2030,0
@@ -614,6 +619,7 @@ North Carolina A&T,,,,,2
 North Carolina Central,,,,,0
 ,North Carolina Central,12,1,2030,0
 ,North Carolina Central,12,1,2030,0
+,North Carolina Central,11,16,2026,0
 North Dakota,,,,,0
 ,North Dakota,12,1,2030,0
 North Dakota State,,,,,1
@@ -684,6 +690,7 @@ Pacific,,,,,1
 Penn,,,,,0
 ,Penn,12,1,2030,0
 ,Penn,12,1,2030,0
+,Penn,11,16,2026,0
 Penn State,,,,,0
 ,Penn State,12,1,2030,0
 Pepperdine,,,,,2
@@ -741,10 +748,10 @@ Rider,,,,,1
 ,Rider,12,1,2030,0
 ,Rider,12,1,2030,0
 ,Rider,11,11,2026,1
-Robert Morris,,,,,0
+Robert Morris,,,,,1
 ,Robert Morris,12,1,2030,0
 ,Robert Morris,12,1,2030,0
-,Robert Morris,11,15,2026,0
+,Robert Morris,11,15,2026,1
 Rutgers,,,,,0
 ,Rutgers,12,1,2030,0
 Sacramento State,,,,,1
@@ -807,19 +814,21 @@ South Carolina State,,,,,1
 ,South Carolina State,12,1,2030,0
 ,South Carolina State,12,1,2030,0
 ,South Carolina State,11,2,2026,1
-South Dakota,,,,,1
+South Dakota,,,,,2
 ,South Dakota,12,1,2030,0
 ,South Dakota,12,1,2030,0
-,South Dakota,11,15,2026,0
+,South Dakota,11,15,2026,1
 ,South Dakota,11,2,2026,1
 South Dakota State,,,,,1
 ,South Dakota State,12,1,2030,0
 ,South Dakota State,12,1,2030,0
+,South Dakota State,11,16,2026,0
 ,South Dakota State,11,6,2026,1
 South Florida,,,,,0
 ,South Florida,12,1,2030,0
 Southeast Missouri State,,,,,1
 ,Southeast Missouri State,12,1,2030,0
+,Southeast Missouri State,11,16,2026,0
 ,Southeast Missouri State,11,4,2026,1
 Southeastern Louisiana,,,,,0
 ,Southeastern Louisiana,12,1,2030,0
@@ -860,6 +869,7 @@ Stephen F. Austin,,,,,2
 Stetson,,,,,0
 ,Stetson,12,1,2030,0
 ,Stetson,12,1,2030,0
+,Stetson,11,16,2026,0
 Stonehill,,,,,1
 ,Stonehill,12,1,2030,0
 ,Stonehill,11,2,2026,1
@@ -878,19 +888,19 @@ Temple,,,,,0
 ,Temple,12,1,2030,0
 Tennessee,,,,,0
 ,Tennessee,12,1,2030,0
-Tennessee Martin,,,,,1
+Tennessee Martin,,,,,2
 ,Tennessee Martin,12,1,2030,0
 ,Tennessee Martin,12,1,2030,0
-,Tennessee Martin,11,15,2026,0
+,Tennessee Martin,11,15,2026,1
 ,Tennessee Martin,11,13,2026,1
 Tennessee State,,,,,1
 ,Tennessee State,12,1,2030,0
 ,Tennessee State,12,1,2030,0
 ,Tennessee State,12,1,2030,0
 ,Tennessee State,11,9,2026,1
-Tennessee Tech,,,,,1
+Tennessee Tech,,,,,2
 ,Tennessee Tech,12,1,2030,0
-,Tennessee Tech,11,15,2026,0
+,Tennessee Tech,11,15,2026,1
 ,Tennessee Tech,11,4,2026,1
 Texas,,,,,0
 ,Texas,12,1,2030,0
@@ -940,9 +950,9 @@ UC Riverside,,,,,1
 UC San Diego,,,,,1
 ,UC San Diego,12,1,2030,0
 ,UC San Diego,11,2,2026,1
-UC Santa Barbara,,,,,1
+UC Santa Barbara,,,,,2
 ,UC Santa Barbara,12,1,2030,0
-,UC Santa Barbara,11,15,2026,0
+,UC Santa Barbara,11,15,2026,1
 ,UC Santa Barbara,11,2,2026,1
 UCF,,,,,0
 ,UCF,12,1,2030,0
@@ -1005,6 +1015,7 @@ UTSA,,,,,0
 Valparaiso,,,,,0
 ,Valparaiso,12,1,2030,0
 ,Valparaiso,12,1,2030,0
+,Valparaiso,11,16,2026,0
 Vanderbilt,,,,,0
 ,Vanderbilt,12,1,2030,0
 VCU,,,,,0
@@ -1088,50 +1099,39 @@ Wyoming,,,,,1
 ,Wyoming,11,3,2026,1
 Xavier,,,,,0
 ,Xavier,12,1,2030,0
-Yale,,,,,0
+Yale,,,,,1
 ,Yale,12,1,2030,0
 ,Yale,12,1,2030,0
-,Yale,11,15,2026,0
+,Yale,11,15,2026,1
 Youngstown State,,,,,0
 ,Youngstown State,12,1,2030,0
 (blank),,,,,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
-,,11,15,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
+,,11,16,2026,0
