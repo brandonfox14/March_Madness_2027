@@ -2228,6 +2228,8 @@ def predict_team(
 # DISPLAY ALL GAMES
 # ============================================================
 
+daily_export_rows = []
+
 for _, fixture in todays.iterrows():
 
     team1 = str(fixture["Team1"]).strip()
@@ -2323,6 +2325,29 @@ for _, fixture in todays.iterrows():
             simulations, signed, float(total_line) if pd.notna(total_line) else np.nan)
         win1 = probabilities["ml1"]
         win2 = probabilities["ml2"]
+        daily_export_rows.append({
+            "GAME_ID": str(fixture.get("GameID", "")).strip().upper(),
+            "Date": today.strftime("%m/%d/%Y"),
+            "Team1": team1, "Team1Acronym": acr1,
+            "Team2": team2, "Team2Acronym": acr2,
+            "Location": fixture.get("Location", ""),
+            "Home_Team": fixture.get("Home_Team", ""),
+            "ML1": fixture.get("ML1", np.nan),
+            "ML2": fixture.get("ML2", np.nan),
+            "Favorite": fixture.get("Favorite", ""),
+            "Spread": fixture.get("Spread", np.nan),
+            "OverUnder": fixture.get("OverUnder", np.nan),
+            "Projected_PTS1": round(float(m["p1"]), 2),
+            "Projected_PTS2": round(float(m["p2"]), 2),
+            "Model_ML1": probabilities.get("ml1", np.nan),
+            "Model_ML2": probabilities.get("ml2", np.nan),
+            "Model_Cover1": probabilities.get("cover1", np.nan),
+            "Model_Cover2": probabilities.get("cover2", np.nan),
+            "Model_Over": probabilities.get("over", np.nan),
+            "Model_Under": probabilities.get("under", np.nan),
+            "Model_Version": "V3",
+            "Snapshot_Date": today.strftime("%m/%d/%Y"),
+        })
         # Tied regulation-like scores were resolved by the joint OT simulator.
 
         # ----------------------------------------------------
@@ -2659,6 +2684,17 @@ for _, fixture in todays.iterrows():
             )
             show_current_year_results(current, team1, acr1)
             show_current_year_results(current, team2, acr2)
+
+if daily_export_rows:
+    st.divider()
+    st.subheader("Save Today's Predictions")
+    st.caption("Save this CSV before the games begin; Success grades these saved projections.")
+    st.download_button(
+        "Download today's projection snapshot for Correct_Rate",
+        pd.DataFrame(daily_export_rows).to_csv(index=False).encode("utf-8-sig"),
+        file_name=f"March_Metrics_Projections_{today:%Y-%m-%d}.csv",
+        mime="text/csv",
+    )
 
 st.caption(
     "Score ranges come from a provisional joint simulation and may not achieve "

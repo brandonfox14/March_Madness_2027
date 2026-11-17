@@ -1534,26 +1534,73 @@ def v3_feature_matrix(frame, columns):
     return data.replace([np.inf, -np.inf], np.nan)
 
 
+# Explicit mapping between historical pregame snapshots in COMP_STAT
+# and the current cumulative/team metrics in All_Stats. Only pregame
+# snapshots are training features; final-game FGM/FGA/PTS are targets or
+# diagnostic data, never training predictors.
+V3_PRE_PROFILE_MAP = {
+    "WIN_PCT": "Win_Perc",
+    "PTS_FOR": "PTS", "PTS_ALLOW": "OPP_PTS",
+    "1H_FOR": "1H", "1H_ALLOW": "OPP_1H",
+    "2H_FOR": "2H", "2H_ALLOW": "OPP_2H",
+    "FG_PCT_FOR": "FGPerc", "FG_PCT_ALLOW": "OPP_FGPerc",
+    "2P_PCT_FOR": "FG2Perc", "2P_PCT_ALLOW": "OPP_FG2Perc",
+    "3P_PCT_FOR": "FG3Perc", "3P_PCT_ALLOW": "OPP_FG3Perc",
+    "FT_PCT_FOR": "FTPerc", "FT_PCT_ALLOW": "OPP_FTPerc",
+    "3PA_RATE_FOR": "PerShots3", "3PA_RATE_ALLOW": "OPP_PerShots3",
+    "PERC_FROM_3": "PercFrom3", "PERC_FROM_3_ALLOW": "OPP_PercFrom3",
+    "EFG_FOR": "EFG_PCT", "EFG_ALLOW": "OPP_EFG_PCT",
+    "TS_FOR": "TS_PCT", "TS_ALLOW": "OPP_TS_PCT",
+    "OFF_EFF": "OFF_EFF", "DEF_EFF": "DEF_EFF", "NET_EFF": "NET_EFF",
+    "OREB_RATE": "OREB_RATE", "DREB_RATE": "DREB_RATE",
+    "REB_SHARE": "REB_SHARE", "TURN_RATE": "TURN_RATE",
+    "FORCED_TURN_RATE": "FORCED_TURN_RATE",
+    "EXTRA_CREATED": "EXTRA_OPP_CREATED",
+    "EXTRA_ALLOWED": "EXTRA_OPP_ALLOWED",
+    "NET_EXTRA_OPP": "NET_EXTRA_OPP",
+    "NET_EXTRA_RATE": "NET_EXTRA_OPP_RATE",
+    "AST_TO": "AST_TO_RATIO", "AST_TO_ALLOW": "OPP_AST_TO_RATIO",
+    "AST_FGM_RATE": "AST_FGM_RATE",
+    "AST_FGM_RATE_ALLOW": "OPP_AST_FGM_RATE",
+}
+
+# The corresponding totals in All_Stats are accumulated across games.
+V3_CUMULATIVE_PROFILE_FIELDS = {
+    "PTS_FOR", "PTS_ALLOW", "1H_FOR", "1H_ALLOW",
+    "2H_FOR", "2H_ALLOW",
+}
+
+
 def v3_profile_value(row, suffix, gp):
-    """Translate All_Stats season-to-date into game-level PRE features."""
+    """Map COMP_STAT pregame field to a team's own All_Stats profile."""
     if suffix == "GP":
         return gp
-    mapped = ML_FEATURE_MAP.get(suffix)
-    if mapped is None:
-        # Named pregame fields not present in ML_FEATURE_MAP are unavailable,
-        # rather than incorrectly assuming a similar box-score column.
-        if suffix == "POSS":
-            mapped = "EST_POSS"
-        elif suffix == "CLUTCH_GAMES":
-            mapped = "Clutch_Games"
-        else:
+    if suffix == "WINS":
+        return n(row.get("Win", np.nan))
+    if suffix == "LOSSES":
+        return n(row.get("Loss", np.nan))
+    if suffix == "CLUTCH_GAMES":
+        return n(row.get("Clutch_Games", np.nan))
+    if suffix == "POSS":
+        # EST_POSS in All_Stats is normally cumulative, whereas COMP_STAT
+        # TEAM_PRE_POSS / OPP_PRE_POSS are pregame possession profiles.
+        raw = n(row.get("EST_POSS", np.nan))
+        if pd.isna(raw):
             return np.nan
+        return float(raw / gp) if np.isfinite(gp) and gp > 0 and raw > 95 else float(raw)
+    if suffix in ("2PA_RATE_FOR", "2PA_RATE_ALLOW"):
+        other = "3PA_RATE_FOR" if suffix.endswith("FOR") else "3PA_RATE_ALLOW"
+        three_rate = v3_profile_value(row, other, gp)
+        return 1.0 - three_rate if np.isfinite(three_rate) else np.nan
+
+    mapped = V3_PRE_PROFILE_MAP.get(suffix)
+    if mapped is None:
+        # Do not substitute postgame box-score values for pregame snapshots.
+        return np.nan
     value = n(row.get(mapped, np.nan))
     if pd.isna(value):
         return np.nan
-    if suffix in ML_PER_GAME_FIELDS and np.isfinite(gp) and gp > 0:
-        value = value / gp
-    if suffix == "POSS" and np.isfinite(gp) and gp > 0 and value > 140:
+    if suffix in V3_CUMULATIVE_PROFILE_FIELDS and np.isfinite(gp) and gp > 0:
         value = value / gp
     return float(value)
 
