@@ -23,7 +23,7 @@ def load_data():
     return v.read_sources(signatures)
 
 def prep_for_day(sources, day):
-    catalog=v.team_catalog(sources['teams'])
+    catalog=v.v3_attach_coaches(v.team_catalog(sources['teams']), sources.get('coaches'))
     past=v.prepare_games(sources.get('historical'),'historical',day,catalog)
     current=v.prepare_games(sources.get('season'),'season',day,catalog)
     combined=pd.concat([x for x in (past,current) if not x.empty],ignore_index=True) if not (past.empty and current.empty) else pd.DataFrame()

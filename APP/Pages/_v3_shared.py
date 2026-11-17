@@ -1445,6 +1445,44 @@ V3_CLUTCH_FIELDS = [
 ]
 
 
+
+# Eligible, genuinely pregame coach-history traits. Exclude demographics,
+# name labels, and statistics including the current game's outcome.
+V3_COACH_FEATURES = (
+    "YEARS_COACH_MIN_5", "YEARS_SCHOOL", "POWER_YEARS",
+    "WINS_PRIOR", "LOSS_PRIOR", "WINS_AT_SCHOOL", "LOSS_AT_SCHOOL",
+    "WINS_VSPWR_SINCE_2021", "LOSSS_VSPWR_SINCE_2021",
+    "WIN_PERC_2021", "D1_WIN_PERC_2022",
+    "MARCH_APPEARANCES_PRIOR", "MARCH_WINS", "MARCH_LOSSES",
+    "MARCH_UPSETS_MADE", "MARCH_TIMES_UPSET", "TIMES_UPSET_RATE",
+    "REACHING_MARCH_PERC", "YEARS_W20WINS", "YEARS_W25WINS",
+    "WINNING_SEASONS_PERC", "P_WIN_DIFF_AVG",
+)
+
+
+def v3_attach_coaches(catalog, coaches):
+    """Join Coach-Table 1 to All_Stats by coach name, preserving team order.
+
+    The input Coach values must be as-of the forecasting date for backtests.
+    Numeric values here are then used as COACH_* regression predictors.
+    """
+    output = catalog.copy()
+    for suffix in V3_COACH_FEATURES:
+        output["COACH_" + suffix] = np.nan
+    if coaches is None or coaches.empty or "Coach Name" not in coaches.columns:
+        return output
+    work = coaches.copy()
+    work.columns = work.columns.astype(str).str.strip()
+    work["_COACH_KEY"] = work["Coach Name"].fillna("").astype(str).str.strip().str.casefold()
+    work = work[work["_COACH_KEY"].ne("")].drop_duplicates("_COACH_KEY", keep="first")
+    by_name = work.set_index("_COACH_KEY")
+    names = output["Coach Name"].fillna("").astype(str).str.strip().str.casefold()
+    for suffix in V3_COACH_FEATURES:
+        if suffix in by_name.columns:
+            lookup = pd.to_numeric(by_name[suffix], errors="coerce")
+            output["COACH_" + suffix] = names.map(lookup).to_numpy(dtype=float)
+    return output
+
 def v3_training_frame(games):
     """Completed current-season team-game observations with valid pregame pace."""
     if games is None or games.empty:
@@ -1473,7 +1511,7 @@ def v3_training_frame(games):
 def v3_feature_columns(frame):
     columns = []
     allowed_prefixes = ("TEAM_PRE_", "OPP_PRE_", "CORE_", "OPP_CORE_",
-                        "TEAM_CLUTCH_", "OPP_PRE_CLUTCH_")
+                        "TEAM_CLUTCH_", "OPP_PRE_CLUTCH_", "COACH_")
     for col in frame.columns:
         if not col.startswith(allowed_prefixes):
             continue
@@ -1481,6 +1519,8 @@ def v3_feature_columns(frame):
         if col in {"TEAM_PRE_CLUTCH_GAMES", "OPP_PRE_CLUTCH_GAMES"}:
             pass
         if "CLUTCH" in col and col.split("_")[-1] not in V3_CLUTCH_FIELDS and not col.endswith("CLUTCH_GAMES"):
+            continue
+        if col.startswith("COACH_") and col[6:] not in V3_COACH_FEATURES:
             continue
         if col.startswith("CORE_") and col[5:] not in V3_CORE_FIELDS:
             continue
@@ -1507,9 +1547,10 @@ def v3_feature_columns(frame):
         "opp": [c for c in columns if c.startswith("OPP_PRE_") and "CLUTCH" not in c],
         "core": [c for c in columns if c.startswith(("CORE_", "OPP_CORE_"))],
         "clutch": [c for c in columns if "CLUTCH" in c],
+        "coach": [c for c in columns if c.startswith("COACH_")],
     }
     picked = []
-    for bucket, limit in (("team", 20), ("opp", 18), ("core", 10), ("clutch", 7)):
+    for bucket, limit in (("team", 18), ("opp", 15), ("core", 9), ("clutch", 5), ("coach", 8)):
         picked.extend(c for c in buckets[bucket][:limit] if c not in picked)
     picked.extend(c for c in columns if c not in picked)
     # Market and location features belong to the pregame data, never the target.
@@ -1629,6 +1670,8 @@ def v3_current_features(catalog, acr1, acr2, columns, spread1, total_line, ml1, 
             result[col] = n(first.get(col, np.nan))
         elif col.startswith("TEAM_CLUTCH_"):
             result[col] = n(first.get("CLUTCH_" + col[len("TEAM_CLUTCH_"):], np.nan)) if clutch_ok else np.nan
+        elif col.startswith("COACH_"):
+            result[col] = n(first.get(col, np.nan))
     result.update({"_SPREAD_V3": spread1, "_TOTAL_V3": total_line,
                    "_ML_V3": ml1, "VENUE_HOME": float(han == "HOME"),
                    "VENUE_AWAY": float(han == "AWAY"),

@@ -44,6 +44,8 @@ def neutral_rankings(day_stamp, files_sig):
             second[feature]=pd.to_numeric(stats.get(src,pd.Series(np.nan,index=stats.index)),errors='coerce').to_numpy(float)
         elif feature.startswith('CORE_'):
             first[feature]=pd.to_numeric(stats.get(feature,pd.Series(np.nan,index=stats.index)),errors='coerce').to_numpy(float)
+        elif feature.startswith('COACH_'):
+            first[feature]=pd.to_numeric(stats.get(feature,pd.Series(np.nan,index=stats.index)),errors='coerce').to_numpy(float)
         elif feature.startswith('TEAM_CLUTCH_'):
             src='CLUTCH_'+feature[len('TEAM_CLUTCH_'):]
             first[feature]=pd.to_numeric(stats.get(src,pd.Series(np.nan,index=stats.index)),errors='coerce').to_numpy(float)
