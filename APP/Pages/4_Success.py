@@ -37,32 +37,33 @@ else:
             'CSV in Data/27_March_Madness_Data as Correct_Rate-Table 1.csv.')
 
 # No completed-game outcomes are used to create these forecasts.
-# Default is the *next* databook day, as requested.
-export_day=day+pd.Timedelta(days=1)
-st.subheader('Next Day — Predicted Games Export')
-st.caption(f'Current databook date: {day:%b %d, %Y} · Next-day forecast: {export_day:%b %d, %Y}')
+# Export the SAME date shown on Today's Games (Current_Day).
+# Save this snapshot before tip-off; never regenerate past predictions for grading.
+export_day=day
+st.subheader("Today's Games — Predictions for Correct_Rate")
+st.caption(f"Databook date: {export_day:%b %d, %Y} · Save these forecasts before games begin.")
 try:
-    with st.spinner('Preparing next-day V3 forecasts...'):
+    with st.spinner("Preparing today's V3 forecasts..."):
         upcoming=snapshot_for_date(sources,export_day)
 except Exception as exc:
     upcoming=pd.DataFrame(columns=SNAP_COLUMNS)
-    st.warning(f'Unable to forecast next-day games: {exc}')
+    st.warning(f"Unable to forecast today's games: {exc}")
 
 if upcoming.empty:
-    st.info('No forecastable games for the next databook day. Confirm the next date is present in Schedule and '
+    st.info('No forecastable games for the current databook date. Confirm this date is present in Schedule and '
             'that the team acronyms and completed historical games exist.')
 else:
     st.dataframe(upcoming,hide_index=True,use_container_width=True)
-    st.download_button('Download next-day projections CSV',upcoming.to_csv(index=False).encode('utf-8-sig'),
+    st.download_button("Download TODAY's projections CSV",upcoming.to_csv(index=False).encode('utf-8-sig'),
         file_name=f'March_Metrics_Projections_{export_day:%Y-%m-%d}.csv',mime='text/csv')
 
-# This file can replace Correct_Rate directly, avoiding manual row insertion.
+# Combine today's saved forecasts with the archive; previously saved rows take priority.
 combined=merge_snapshots(saved,upcoming)
 st.download_button('Download UPDATED Correct_Rate (old + new; no duplicate GameIDs)',
         combined.to_csv(index=False).encode('utf-8-sig'),
         file_name='Correct_Rate-Table 1.csv',mime='text/csv',
         help='Replace your exported Correct_Rate CSV with this cumulative file. Existing predictions are never overwritten.')
-st.caption('Using Apple Numbers? Import the daily projections CSV and append its rows to your Correct_Rate '
+st.caption("Using Apple Numbers? Import today's projections CSV and append its rows to your Correct_Rate "
            'table, or use the cumulative download to replace the CSV. The app cannot write directly into Numbers.')
 
 st.divider()
