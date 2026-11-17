@@ -42,6 +42,7 @@ FILES = {
 
 CURRENT_YEAR_MULTIPLIER = 3.0
 CONFERENCE_MULTIPLIER = 0.20
+# Historical component: 90% team/coach, at most 10% opponent-conference.
 TEAM_COACH_CONTEXT_SHARE = 0.95
 CONFERENCE_CONTEXT_SHARE = 0.05
 PRIOR_GAMES = 8.0
@@ -51,7 +52,7 @@ OPP_DEFENSE_SHARE = 0.25
 ML_CONTEXT_SHARE = 0.65
 ML_CONFERENCE_SHARE = 0.05
 
-ML_START_DATE = pd.Timestamp(2026, 11, 15)
+ML_START_DATE = pd.Timestamp(2026, 11, 20)
 ML_INFLUENCE = 0.30
 ML_MIN_ROWS = 40
 
@@ -62,6 +63,7 @@ OUTCOMES = [
     "PTS", "OPP_PTS",
 ]
 
+# Pregame game-log field -> current All_Stats field
 ML_FEATURE_MAP = {
     "GP": None,
     "WIN_PCT": "Win_Perc",
@@ -243,6 +245,7 @@ def prepare_games(df, source, current_date, catalog):
     out = df.copy()
     out["_DATE"] = find_date(out)
 
+    # Only use games completed BEFORE the selected date.
     out = out.loc[
         out["_DATE"].notna()
         & (out["_DATE"] < current_date)
@@ -259,6 +262,7 @@ def prepare_games(df, source, current_date, catalog):
         & out["OPP_PTS"].notna()
     ].copy()
 
+    # Historical market results
     out["WIN_RESULT"] = (
         out["PTS"] > out["OPP_PTS"]
     ).astype(float)
@@ -280,6 +284,7 @@ def prepare_games(df, source, current_date, catalog):
         np.nan
     )
 
+    # Final-result margins used only for retrospective diagnostics.
     out["WIN_MARGIN"] = out["PTS"] - out["OPP_PTS"]
     out["COVER_MARGIN_CALC"] = out["WIN_MARGIN"] + out["SPREAD"]
     out["OVER_MARGIN_CALC"] = out["PTS"] + out["OPP_PTS"] - out["TOTAL_LINE"]
@@ -609,6 +614,9 @@ def forecast_side(games, ctx):
             "Influence": imp
         })
 
+    # Separate team/coach contexts from any contexts involving opponent
+    # conference. This prevents the numerous opponent-conference combinations
+    # from unintentionally overpowering the team/coach contexts.
     for target in targets:
         pool_results = {}
         for pool_name in ("team_coach", "conference"):
@@ -624,6 +632,7 @@ def forecast_side(games, ctx):
                 if not np.isfinite(mu):
                     continue
                 reliability = effective / (effective + PRIOR_GAMES)
+                # Prefer this team's own past, not the national scoring mean.
                 team_prior, _, _ = weighted_stats(
                     team_history[target].to_numpy(dtype=float),
                     team_history["_WEIGHT"].to_numpy(dtype=float)
@@ -652,6 +661,8 @@ def forecast_side(games, ctx):
         elif "team_coach" in pool_results:
             shares = {"team_coach": 1.0}
         elif "conference" in pool_results:
+            # Only a conference signal exists: do not pretend it represents
+            # 90% of the evidence; fall back to the broad historical mean.
             shares = {"conference": CONFERENCE_CONTEXT_SHARE}
             if np.isfinite(global_mean[target]):
                 pool_results["global_fallback"] = (
@@ -705,6 +716,7 @@ def forecast_side(games, ctx):
 # ============================================================
 
 def blend(a, b, a_key, b_key, share=TEAM_SCORE_SHARE):
+    """Use the scoring team's history primarily; defense <= 25%."""
     x = a["mean"].get(a_key, np.nan)
     y = b["mean"].get(b_key, np.nan)
     if np.isfinite(x) and np.isfinite(y):
@@ -729,6 +741,11 @@ def context_score(offense, defense, pool):
 
 
 def scoring_dispersion(offense, defense):
+    """Predictive score SD estimated from matched scoring/allowing histories.
+
+    Does NOT artificially force a 75-point lower bound; 95% coverage
+    has to be evaluated on held-out results later.
+    """
     s_for = offense["sd"].get("PTS", np.nan)
     s_against = defense["sd"].get("OPP_PTS", np.nan)
     if np.isfinite(s_for) and np.isfinite(s_against):
@@ -755,6 +772,12 @@ def weighted_quantile(values, weights, q):
 
 
 def score_interval(offense, defense, games, predicted_mean, fallback_sd):
+    """Recency-weighted 2.5%-97.5% empirical score residual interval.
+
+    Only the scoring team's OWN points and opponent's OWN points allowed
+    enter, at 75/25. National or conference score distributions don't
+    inflate it. This is still uncalibrated without held-out testing.
+    """
     components = []
     for ctx, score_col, share in (
         (offense, "PTS", TEAM_SCORE_SHARE),
@@ -782,17 +805,21 @@ def score_interval(offense, defense, games, predicted_mean, fallback_sd):
     weights = np.concatenate([c[1] * c[2] / total_share for c in components])
     lower = weighted_quantile(residuals, weights, 0.025)
     upper = weighted_quantile(residuals, weights, 0.975)
+    # Minimum ±1 standard deviation when small/degenerate samples.
     lower = min(lower, -fallback_sd)
     upper = max(upper, fallback_sd)
     return (max(0.0, predicted_mean + lower), predicted_mean + upper)
 
 
 def model_matchup(first, second):
+    # The two contexts are combined explicitly below, not double-counted.
     t1 = context_score(first, second, "team_coach")
     t2 = context_score(second, first, "team_coach")
     c1 = context_score(first, second, "conference")
     c2 = context_score(second, first, "conference")
 
+    # Before ML starts: 95% team/coach + 5% conference, if present.
+    # Once ML exists: 65% team/coach + 5% conference + 30% ML.
     def combine(team, conf):
         if np.isfinite(team) and np.isfinite(conf):
             return TEAM_COACH_CONTEXT_SHARE * team + CONFERENCE_CONTEXT_SHARE * conf
@@ -823,6 +850,16 @@ def model_matchup(first, second):
 
 # ============================================================
 # CURRENT-SEASON MACHINE LEARNING
+# ============================================================
+# Three methods:
+# 1. Ridge Regression
+# 2. Extra Trees Regression
+# 3. Histogram Gradient Boosting
+#
+# No team/coach/conference identifiers.
+# Only COMP_STAT completed games.
+# Only pregame columns used as predictors.
+# PTS and OPP_PTS are separate targets.
 # ============================================================
 
 def ml_feature_names():
@@ -1072,6 +1109,7 @@ def show_probability(label, p):
 # ============================================================
 
 def valid_odds(value):
+    """American odds, including missing NA / blank cells."""
     try:
         x = float(value)
         return x if np.isfinite(x) and x != 0 else np.nan
@@ -1087,6 +1125,7 @@ def american_implied(odds):
 
 
 def edge_background(value):
+    """Difference in percentage points. +/-3 is white; +/-20 saturates."""
     if not np.isfinite(value) or abs(value) <= 3:
         return "background-color: #ffffff; color: #111111"
     strength = min(1.0, (abs(value) - 3.0) / 17.0)
@@ -1098,6 +1137,7 @@ def edge_background(value):
 
 
 def model_win_background(probability):
+    """0% deep red, 50% gray, 100% deep green."""
     if not np.isfinite(probability):
         return ""
     p = float(np.clip(probability, 0, 1))
@@ -1110,6 +1150,7 @@ def model_win_background(probability):
 
 
 def betting_table(rows, shade_model=False):
+    """Rows contain selection, odds, market probability, model probability."""
     df = pd.DataFrame(rows)
     if df.empty:
         return
@@ -1134,6 +1175,11 @@ def betting_table(rows, shade_model=False):
 # ============================================================
 
 def matchup_margin_history(games, side, ctx, column):
+    """Current-season-weighted margins for this team/coach/context.
+
+    Repeated contextual rows are not duplicated. Team and coach matching
+    provide extra importance; all calculations are retrospective, not ML features.
+    """
     if games.empty or column not in games.columns:
         return None
     mask_team = games["TEAM"].eq(ctx["TEAM"])
@@ -1172,6 +1218,7 @@ def margin_thresholds(history):
 
 
 def historical_cover_rate_near_line(games, ctx, signed_spread):
+    """Time-weighted ATS performance near today's spread, if available."""
     if games.empty:
         return np.nan, 0.0
     sub = games.loc[games["TEAM"] == ctx["TEAM"]].copy()
@@ -1194,12 +1241,19 @@ def historical_cover_rate_near_line(games, ctx, signed_spread):
 
 
 def empirical_cover_probability(first, second, ctx1, ctx2, margin, signed, sd_margin, games):
+    """Model-margin-aligned historical tails, with a normal fallback.
+
+    Historic win margins and historic cover margins capture asymmetry. To
+    avoid confusing win and cover, the actual upcoming spread enters this
+    threshold separately. Historical bet performance only adjusts the tail.
+    """
     baseline = normal_cdf((margin + signed) / sd_margin)
     hist1 = matchup_margin_history(games, first, ctx1, "WIN_MARGIN")
     hist2 = matchup_margin_history(games, second, ctx2, "WIN_MARGIN")
     if hist1 is None and hist2 is None:
         return baseline
 
+    # Align each past margin distribution to the predicted matchup margin.
     residual_values, residual_weights = [], []
     for hist, reverse in ((hist1, False), (hist2, True)):
         if hist is None:
@@ -1213,6 +1267,7 @@ def empirical_cover_probability(first, second, ctx1, ctx2, margin, signed, sd_ma
         return baseline
     v = np.concatenate(residual_values)
     w = np.concatenate(residual_weights)
+    # Logistic smoothing prevents impossible 0%/100% from tiny samples.
     bandwidth = max(2.0, 0.25 * sd_margin)
     z = np.clip((margin + signed + v) / bandwidth, -30, 30)
     empirical = float(np.average(1.0 / (1.0 + np.exp(-z)), weights=w))
@@ -1220,11 +1275,732 @@ def empirical_cover_probability(first, second, ctx1, ctx2, margin, signed, sd_ma
     trust = 0.65 * samples / (samples + 15.0)
     result = (1 - trust) * baseline + trust * empirical
 
+    # Historical ATS success is separately informative from winning outright.
+    # Limit this calibration term to 15% and only when similar historical
+    # spreads exist. This preserves the matchup margin as the primary driver.
     ats1, effective1 = historical_cover_rate_near_line(games, ctx1, signed)
     if np.isfinite(ats1):
         ats_share = 0.15 * effective1 / (effective1 + 12.0)
         result = (1 - ats_share) * result + ats_share * ats1
     return float(np.clip(result, 0.005, 0.995))
+
+
+# ============================================================
+# CURRENT-SEASON RESULTS (DISPLAY ONLY)
+# ============================================================
+
+def current_year_result_table(current_games, team_name, acronym):
+    """Completed COMP_STAT games for one team, with betting result colors."""
+    if current_games is None or current_games.empty:
+        return pd.DataFrame()
+
+    team_key = key_text(team_name)
+    acr_key = str(acronym).strip().upper()
+    selected = current_games.loc[current_games["TEAM"].eq(team_key)].copy()
+    if "TEAM_ACR" in current_games.columns:
+        by_acronym = current_games["TEAM_ACR"].astype(str).str.strip().str.upper().eq(acr_key)
+        selected = current_games.loc[current_games["TEAM"].eq(team_key) | by_acronym].copy()
+    if selected.empty:
+        return pd.DataFrame()
+
+    selected = selected.sort_values("_DATE", ascending=False)
+    rows = []
+
+    def number_text(value, signed=False):
+        value = n(value)
+        if pd.isna(value):
+            return "N/A"
+        return f"{float(value):+g}" if signed else f"{float(value):g}"
+
+    for _, game in selected.iterrows():
+        points = n(game.get("PTS", np.nan))
+        opponent_points = n(game.get("OPP_PTS", np.nan))
+        if pd.isna(points) or pd.isna(opponent_points):
+            continue
+
+        margin = float(points - opponent_points)
+        final_score = f"{float(points):g}–{float(opponent_points):g}"
+        moneyline = game.get("ML", np.nan)
+        spread = n(game.get("SPREAD", np.nan))
+        total_line = n(game.get("TOTAL_LINE", np.nan))
+        moneyline_available = np.isfinite(valid_odds(moneyline))
+
+        # For ML, the game score determines whether the team won.
+        # A missing historical ML remains uncolored / N/A.
+        ml_result = ("W" if margin > 0 else "L") if moneyline_available else "N/A"
+        if margin == 0 and moneyline_available:
+            ml_result = "Push"
+
+        if pd.notna(spread):
+            spread_margin = margin + float(spread)
+            spread_result = "W" if spread_margin > 0 else "L" if spread_margin < 0 else "Push"
+        else:
+            spread_result = "N/A"
+
+        # O/U is explicitly shown from the perspective of an OVER bet.
+        # Green means OVER, red means UNDER, gray means PUSH.
+        if pd.notna(total_line):
+            total_margin = float(points + opponent_points - total_line)
+            over_result = "W" if total_margin > 0 else "L" if total_margin < 0 else "Push"
+        else:
+            over_result = "N/A"
+
+        game_date = game.get("_DATE", pd.NaT)
+        date_label = game_date.strftime("%m/%d/%y") if pd.notna(game_date) else "N/A"
+        rows.append({
+            "Date": date_label,
+            "Opponent": str(game.get("OPP", "")).strip().title(),
+            "HAN": str(game.get("HAN", "")).upper(),
+            "Final (Team–Opp)": final_score,
+            "ML Odds": number_text(moneyline, signed=True) if moneyline_available else "N/A",
+            "ML Result": ml_result,
+            "Spread": number_text(spread, signed=True),
+            "Spread Result": spread_result,
+            "O/U Line": number_text(total_line),
+            "Over Result": over_result,
+        })
+
+    return pd.DataFrame(rows)
+
+
+def color_current_result(value):
+    if value == "W":
+        return "background-color: #c9efd2; color: #14532d; font-weight: bold"
+    if value == "L":
+        return "background-color: #f7c8c8; color: #7f1d1d; font-weight: bold"
+    if value == "Push":
+        return "background-color: #e5e7eb; color: #374151; font-weight: bold"
+    return ""
+
+
+def show_current_year_results(current_games, team_name, acronym):
+    st.markdown(f"**{team_name}**")
+    table = current_year_result_table(current_games, team_name, acronym)
+    if table.empty:
+        st.caption("No completed 2026–27 games before the databook date.")
+        return
+    def shade_result_cells(row):
+        styles = ["" for _ in row.index]
+        for result_col, value_col in (
+            ("ML Result", "ML Odds"),
+            ("Spread Result", "Spread"),
+            ("Over Result", "O/U Line"),
+        ):
+            color = color_current_result(row[result_col])
+            styles[row.index.get_loc(result_col)] = color
+            styles[row.index.get_loc(value_col)] = color
+        return styles
+
+    styled = table.style.apply(shade_result_cells, axis=1)
+    st.dataframe(styled, hide_index=True, use_container_width=True)
+
+
+# ============================================================
+# V3 — TEN-OBJECTIVE PREGAME REGRESSIONS / JOINT SIMULATION
+# ============================================================
+# The ten heads fit two predicted scores jointly using different smooth
+# objectives.  Binary-event heads use logistic loss, not a postgame feature.
+# Every feature is known before tipoff. This is NOT an ROI guarantee.
+
+from scipy.optimize import minimize
+from scipy.special import expit
+from sklearn.ensemble import HistGradientBoostingRegressor
+import zlib
+
+V3_WEIGHTS = {
+    "Regression objectives": 0.42,
+    "Team/coach history": 0.33,
+    "Comparable odds": 0.10,
+    "Supervised correction": 0.10,
+    "Betting tendencies": 0.05,
+}
+V3_OBJECTIVES = [
+    ("ML outcome", ("ML",), 7),
+    ("Spread outcome", ("ATS",), 7),
+    ("Total outcome", ("OU",), 7),
+    ("ML + Spread", ("ML", "ATS"), 10),
+    ("ML + Total", ("ML", "OU"), 10),
+    ("Spread + Total", ("ATS", "OU"), 10),
+    ("All 3", ("ML", "ATS", "OU"), 15),
+    ("Score error", ("SCORE",), 17),
+    ("Exact rounded score", ("EXACT",), 5),
+    ("Avoid 5+ point misses", ("LARGE",), 12),
+]
+V3_MIN_TRAIN = 90
+V3_MAX_TRAIN = 5500  # cap regression optimization to keep Streamlit responsive
+V3_MAX_FEATURES = 55
+V3_SIMULATIONS = 7000
+
+# Only allow pregame fields from game-level data; no game box-score columns.
+V3_CORE_FIELDS = [
+    "PTS", "FGM", "FGA", "FG_PERC", "FG3M", "FG3A", "FG3_PERC",
+    "FTM", "FTA", "FT_PERC", "REB", "AST", "TO", "STL", "BLKS",
+    "OREB", "DREB", "PF", "FOUL_TROUBLE", "PTS_PERC", "FGA_PERC",
+    "REB_PERC", "AST_PERC", "TO_PERC", "OREB_PERC",
+]
+V3_CLUTCH_FIELDS = [
+    "FGM", "FGA", "FGPERC", "FG3M", "FG3A", "FG3PERC", "FTM",
+    "FTA", "FTPERC", "OPP_FGM", "OPP_FGA", "OPP_FGPERC",
+    "SM", "REB", "OPP_REB", "OREB", "TURN", "OPP_TURN", "STLS",
+]
+
+
+def v3_training_frame(games):
+    """Completed current-season team-game observations with valid pregame pace."""
+    if games is None or games.empty:
+        return pd.DataFrame()
+    needed = ("TEAM_PRE_POSS", "OPP_PRE_POSS", "PTS", "OPP_PTS")
+    if any(k not in games.columns for k in needed):
+        return pd.DataFrame()
+    work = games.copy()
+    for k in needed:
+        work[k] = n(work[k])
+    work = work.loc[(work.TEAM_PRE_POSS > 0) & (work.OPP_PRE_POSS > 0)
+                    & (work.PTS > 0) & (work.OPP_PTS > 0)].copy()
+    if work.empty:
+        return work
+    work["_SPREAD_V3"] = n(work["SPREAD"]) if "SPREAD" in work else np.nan
+    work["_TOTAL_V3"] = n(work["TOTAL_LINE"]) if "TOTAL_LINE" in work else np.nan
+    work["_ML_V3"] = n(work["ML"]) if "ML" in work else np.nan
+    # Game-level CORE and CLUTCH columns must be pregame snapshots in COMP_STAT.
+    # Neither team can contribute clutch features unless both have played clutch possessions.
+    team_cl = n(work.get("TEAM_CLUTCH_FGM", pd.Series(np.nan, index=work.index)))
+    opp_cl = n(work.get("OPP_PRE_CLUTCH_FGM", pd.Series(np.nan, index=work.index)))
+    work["_CLUTCH_OK"] = (team_cl > 0) & (opp_cl > 0)
+    return work.sort_values("_DATE").copy()
+
+
+def v3_feature_columns(frame):
+    columns = []
+    allowed_prefixes = ("TEAM_PRE_", "OPP_PRE_", "CORE_", "OPP_CORE_",
+                        "TEAM_CLUTCH_", "OPP_PRE_CLUTCH_")
+    for col in frame.columns:
+        if not col.startswith(allowed_prefixes):
+            continue
+        # Exclude outcome/event indicators, narrative or name fields if present.
+        if col in {"TEAM_PRE_CLUTCH_GAMES", "OPP_PRE_CLUTCH_GAMES"}:
+            pass
+        if "CLUTCH" in col and col.split("_")[-1] not in V3_CLUTCH_FIELDS and not col.endswith("CLUTCH_GAMES"):
+            continue
+        if col.startswith("CORE_") and col[5:] not in V3_CORE_FIELDS:
+            continue
+        if col.startswith("OPP_CORE_") and col[9:] not in V3_CORE_FIELDS:
+            continue
+        arr = n(frame[col]).replace([np.inf, -np.inf], np.nan)
+        if arr.notna().sum() < max(30, int(len(frame) * 0.12)) or arr.nunique(dropna=True) < 3:
+            continue
+        columns.append(col)
+    # Restrict redundant variables to maintain computational performance.
+    priorities = ["POSS", "PTS_FOR", "PTS_ALLOW", "OFF_EFF", "DEF_EFF", "NET_EFF",
+                  "EFG", "TS_", "TURN_RATE", "3P_PCT", "OREB", "DREB", "REB_SHARE",
+                  "AST_TO", "EXTRA", "WIN_PCT", "CORE_PTS", "CORE_FGA", "CLUTCH"]
+    def priority(c):
+        try:
+            return min(i for i, term in enumerate(priorities) if term in c)
+        except ValueError:
+            return len(priorities)
+    columns.sort(key=lambda c: (priority(c), c))
+    # Reserve slots for opponent, core and eligible clutch context. Otherwise
+    # 50 correlated team shooting/efficiency columns can crowd them all out.
+    buckets = {
+        "team": [c for c in columns if c.startswith("TEAM_PRE_")],
+        "opp": [c for c in columns if c.startswith("OPP_PRE_") and "CLUTCH" not in c],
+        "core": [c for c in columns if c.startswith(("CORE_", "OPP_CORE_"))],
+        "clutch": [c for c in columns if "CLUTCH" in c],
+    }
+    picked = []
+    for bucket, limit in (("team", 20), ("opp", 18), ("core", 10), ("clutch", 7)):
+        picked.extend(c for c in buckets[bucket][:limit] if c not in picked)
+    picked.extend(c for c in columns if c not in picked)
+    # Market and location features belong to the pregame data, never the target.
+    return picked[:V3_MAX_FEATURES]
+
+
+def v3_feature_matrix(frame, columns):
+    data = pd.DataFrame(index=frame.index)
+    for col in columns:
+        x = n(frame[col]) if col in frame else pd.Series(np.nan, index=frame.index)
+        if "CLUTCH" in col and "_CLUTCH_OK" in frame:
+            x = x.where(frame["_CLUTCH_OK"])
+        data[col] = x
+    for col in ("_SPREAD_V3", "_TOTAL_V3", "_ML_V3"):
+        data[col] = n(frame[col]) if col in frame else np.nan
+    if "HAN" in frame:
+        for v in ("HOME", "AWAY", "NEUTRAL"):
+            data["VENUE_" + v] = frame["HAN"].astype(str).str.upper().eq(v).astype(float)
+    else:
+        for v in ("HOME", "AWAY", "NEUTRAL"):
+            data["VENUE_" + v] = np.nan
+    return data.replace([np.inf, -np.inf], np.nan)
+
+
+def v3_profile_value(row, suffix, gp):
+    """Translate All_Stats season-to-date into game-level PRE features."""
+    if suffix == "GP":
+        return gp
+    mapped = ML_FEATURE_MAP.get(suffix)
+    if mapped is None:
+        # Named pregame fields not present in ML_FEATURE_MAP are unavailable,
+        # rather than incorrectly assuming a similar box-score column.
+        if suffix == "POSS":
+            mapped = "EST_POSS"
+        elif suffix == "CLUTCH_GAMES":
+            mapped = "Clutch_Games"
+        else:
+            return np.nan
+    value = n(row.get(mapped, np.nan))
+    if pd.isna(value):
+        return np.nan
+    if suffix in ML_PER_GAME_FIELDS and np.isfinite(gp) and gp > 0:
+        value = value / gp
+    if suffix == "POSS" and np.isfinite(gp) and gp > 0 and value > 140:
+        value = value / gp
+    return float(value)
+
+
+def v3_current_features(catalog, acr1, acr2, columns, spread1, total_line, ml1, han):
+    first, second = catalog.loc[acr1.upper()], catalog.loc[acr2.upper()]
+    def gp_of(row):
+        w, l = n(row.get("Win", np.nan)), n(row.get("Loss", np.nan))
+        return float(w + l) if pd.notna(w) and pd.notna(l) and w + l > 0 else np.nan
+    gp1, gp2 = gp_of(first), gp_of(second)
+    cl1 = n(first.get("CLUTCH_FGM", np.nan))
+    cl2 = n(second.get("CLUTCH_FGM", np.nan))
+    clutch_ok = pd.notna(cl1) and pd.notna(cl2) and cl1 > 0 and cl2 > 0
+    result = {}
+    for col in columns:
+        if col.startswith("TEAM_PRE_"):
+            result[col] = v3_profile_value(first, col[9:], gp1)
+        elif col.startswith("OPP_PRE_CLUTCH_"):
+            field = col[len("OPP_PRE_CLUTCH_"):]
+            result[col] = n(second.get("CLUTCH_" + field, np.nan)) if clutch_ok else np.nan
+        elif col.startswith("OPP_PRE_"):
+            result[col] = v3_profile_value(second, col[8:], gp2)
+        elif col.startswith("OPP_CORE_"):
+            result[col] = n(second.get("CORE_" + col[len("OPP_CORE_"):], np.nan))
+        elif col.startswith("CORE_"):
+            result[col] = n(first.get(col, np.nan))
+        elif col.startswith("TEAM_CLUTCH_"):
+            result[col] = n(first.get("CLUTCH_" + col[len("TEAM_CLUTCH_"):], np.nan)) if clutch_ok else np.nan
+    result.update({"_SPREAD_V3": spread1, "_TOTAL_V3": total_line,
+                   "_ML_V3": ml1, "VENUE_HOME": float(han == "HOME"),
+                   "VENUE_AWAY": float(han == "AWAY"),
+                   "VENUE_NEUTRAL": float(han == "NEUTRAL")})
+    return result
+
+
+def v3_head_loss(theta, X, y, spread, total, recency, objectives, ridge=0.035):
+    """Differentiable two-score objective with exact analytical gradient."""
+    d = X.shape[1]
+    w = theta.reshape(d, 2)
+    pred = X @ w + 70.0  # intercept captured by first X column
+    residual = pred - y
+    grad_pred = np.zeros_like(pred)
+    # Score anchor keeps all event-focused models anchored to realistic scores.
+    scale = 20.0
+    if "SCORE" in objectives:
+        alpha = 1.0
+    elif "EXACT" in objectives:
+        alpha = 1.4
+    elif "LARGE" in objectives:
+        alpha = 0.9
+    else:
+        alpha = 0.42
+    r = residual / scale
+    if "SCORE" in objectives:
+        # Pseudo-Huber is robust to lopsided blowouts.
+        q = np.sqrt(1.0 + r * r)
+        loss_rows = alpha * np.sum(q - 1.0, axis=1)
+        grad_pred += alpha * r / (scale * q)
+    elif "EXACT" in objectives:
+        # Smooth near-exact-score surrogate. Rounding itself is discontinuous.
+        q = np.sqrt(1.0 + (residual / 5.0)**2)
+        loss_rows = alpha * np.sum(q - 1, axis=1)
+        grad_pred += alpha * residual / (25.0 * q)
+    else:
+        loss_rows = 0.5 * alpha * np.sum(r * r, axis=1)
+        grad_pred += alpha * residual / (scale**2)
+    margin = pred[:, 0] - pred[:, 1]
+    actual_margin = y[:, 0] - y[:, 1]
+    actual_total = y.sum(axis=1)
+    for category in objectives:
+        if category not in ("ML", "ATS", "OU"):
+            continue
+        if category == "ML":
+            actual = actual_margin
+            estimated = margin
+            denom = 10.0
+            valid = np.ones(len(y), dtype=bool)
+        elif category == "ATS":
+            actual = actual_margin + spread
+            estimated = margin + spread
+            denom = 11.0
+            valid = np.isfinite(spread)
+        else:
+            actual = actual_total - total
+            estimated = pred.sum(axis=1) - total
+            denom = 13.0
+            valid = np.isfinite(total)
+        sign = np.sign(actual)
+        valid = valid & (sign != 0) & np.isfinite(actual)
+        signed_logit = np.where(valid, sign * estimated / denom, 0.0)
+        # BCE loss, stable even for an extreme projected score.
+        loss_rows += 4.0 * np.where(valid, np.logaddexp(0.0, -signed_logit), 0.0)
+        derivative = np.where(valid, -4.0 * sign * expit(-signed_logit) / denom, 0.0)
+        if category == "OU":
+            grad_pred[:, 0] += derivative
+            grad_pred[:, 1] += derivative
+        else:
+            grad_pred[:, 0] += derivative
+            grad_pred[:, 1] -= derivative
+    if "LARGE" in objectives:
+        # Stronger cost for mistakes that change predicted margin/total by >=5.
+        dif_m = margin - actual_margin
+        dif_t = pred.sum(axis=1) - actual_total
+        pm = np.maximum(0.0, np.abs(dif_m) - 5.0)
+        pt = np.maximum(0.0, np.abs(dif_t) - 5.0)
+        loss_rows += 0.004 * (pm**2 + pt**2)
+        gm = 0.008 * pm * np.sign(dif_m)
+        gt = 0.008 * pt * np.sign(dif_t)
+        grad_pred[:, 0] += gm + gt
+        grad_pred[:, 1] += -gm + gt
+    norm = max(float(recency.sum()), 1e-9)
+    loss = float(np.dot(loss_rows, recency) / norm)
+    grad = X.T @ (grad_pred * (recency / norm)[:, None])
+    # Do not regularize the intercept.
+    penalty = w[1:, :]
+    loss += ridge * float(np.sum(penalty**2))
+    grad[1:, :] += 2.0 * ridge * penalty
+    return loss, grad.ravel().astype(float)
+
+
+def v3_chronological_validation(work, feature_cols):
+    """Out-of-time check of the ten-head consensus, no later games in training.
+
+    This validates the regression component, not the entire blended model.
+    Periodic true walk-forward evaluation of all five components is still needed.
+    """
+    dates = sorted(work["_DATE"].dropna().unique())
+    if len(work) < 240 or len(dates) < 8:
+        return None
+    cutoff = dates[int(len(dates) * .78)]
+    train = work.loc[work["_DATE"] < cutoff].copy()
+    test = work.loc[work["_DATE"] >= cutoff].copy()
+    if len(train) < 150 or len(test) < 35:
+        return None
+    feature_train = v3_feature_matrix(train, feature_cols)
+    feature_test = v3_feature_matrix(test, feature_cols)
+    imp = SimpleImputer(strategy="median", keep_empty_features=True)
+    scale = StandardScaler()
+    X = np.column_stack([np.ones(len(train)), np.clip(scale.fit_transform(imp.fit_transform(feature_train)), -8, 8)])
+    Xt = np.column_stack([np.ones(len(test)), np.clip(scale.transform(imp.transform(feature_test)), -8, 8)])
+    y = train[["PTS", "OPP_PTS"]].to_numpy(float)
+    spreads = train["_SPREAD_V3"].to_numpy(float)
+    totals = train["_TOTAL_V3"].to_numpy(float)
+    days = (train["_DATE"].max() - train["_DATE"]).dt.days.fillna(0).to_numpy(float)
+    weight = 0.40 + 0.60 * np.exp(-np.maximum(days, 0) / 40.0)
+    init = np.zeros((X.shape[1], 2))
+    init[0] = y.mean(axis=0) - 70.0
+    guess = np.zeros((len(test), 2))
+    for name, objectives, importance in V3_OBJECTIVES:
+        result = minimize(v3_head_loss, init.ravel(),
+                          args=(X, y, spreads, totals, weight, objectives),
+                          method="L-BFGS-B", jac=True,
+                          options={"maxiter": 36, "ftol": 5e-5, "maxls": 12})
+        guess += (importance / 100.0) * (Xt @ result.x.reshape(X.shape[1], 2) + 70.0)
+    truth = test[["PTS", "OPP_PTS"]].to_numpy(float)
+    pred_margin = guess[:, 0] - guess[:, 1]
+    actual_margin = truth[:, 0] - truth[:, 1]
+    valid_ml = actual_margin != 0
+    evaluation = {
+        "Train rows": len(train), "Holdout rows": len(test),
+        "Holdout from": pd.Timestamp(cutoff).strftime("%Y-%m-%d"),
+        "Score MAE": round(float(np.abs(guess - truth).mean()), 2),
+        "ML accuracy": round(float(np.mean((pred_margin[valid_ml] > 0) ==
+                                               (actual_margin[valid_ml] > 0))), 3) if valid_ml.any() else np.nan,
+    }
+    sp = test["_SPREAD_V3"].to_numpy(float)
+    mask = np.isfinite(sp) & (actual_margin + sp != 0)
+    evaluation["Spread accuracy"] = (
+        round(float(np.mean((pred_margin[mask] + sp[mask] > 0) ==
+                            (actual_margin[mask] + sp[mask] > 0))), 3)
+        if mask.any() else np.nan)
+    line = test["_TOTAL_V3"].to_numpy(float)
+    mask = np.isfinite(line) & (truth.sum(axis=1) != line)
+    evaluation["Total accuracy"] = (
+        round(float(np.mean((guess[mask].sum(axis=1) > line[mask]) ==
+                            (truth[mask].sum(axis=1) > line[mask]))), 3)
+        if mask.any() else np.nan)
+    return evaluation
+
+
+@st.cache_resource(show_spinner=False)
+def v3_train_engine(signature, frame):
+    work = v3_training_frame(frame)
+    if len(work) < V3_MIN_TRAIN:
+        return None, f"{len(work)} eligible rows (need at least {V3_MIN_TRAIN})."
+    if len(work) > V3_MAX_TRAIN:
+        # Most recent examples win when the training sample is capped.
+        work = work.tail(V3_MAX_TRAIN).copy()
+    feat = v3_feature_columns(work)
+    if len(feat) < 8:
+        return None, "Not enough populated pregame features for regression."
+    # Date-held-out check is fitted only on earlier games; displayed separately.
+    validation = v3_chronological_validation(work, feat)
+    xf = v3_feature_matrix(work, feat)
+    features = list(xf.columns)
+    imputer = SimpleImputer(strategy="median", keep_empty_features=True)
+    scaler = StandardScaler()
+    X = scaler.fit_transform(imputer.fit_transform(xf))
+    X = np.column_stack([np.ones(len(X)), np.clip(X, -8, 8)])
+    y = work[["PTS", "OPP_PTS"]].to_numpy(float)
+    spread = work["_SPREAD_V3"].to_numpy(float)
+    total = work["_TOTAL_V3"].to_numpy(float)
+    dates = work["_DATE"].max() - work["_DATE"]
+    age_days = dates.dt.days.fillna(0).clip(lower=0).to_numpy(float)
+    recency = 0.40 + 0.60 * np.exp(-age_days / 40.0)
+    # Initial coefficients approximate the unconditional scoring mean.
+    x0 = np.zeros((X.shape[1], 2))
+    x0[0] = np.mean(y, axis=0) - 70.0
+    heads, diagnostics = {}, []
+    for label, obj, importance in V3_OBJECTIVES:
+        result = minimize(v3_head_loss, x0.ravel(),
+                          args=(X, y, spread, total, recency, obj),
+                          method="L-BFGS-B", jac=True,
+                          options={"maxiter": 48, "ftol": 2e-5, "maxls": 12})
+        heads[label] = result.x.reshape(X.shape[1], 2).copy()
+        diagnostics.append({"Objective": label, "Share of 10 heads": importance / 100,
+                            "Converged": bool(result.success)})
+    # A separate limited-complexity supervised correction learner.
+    meta_models = []
+    # Fit residual targets against the mean objective prediction; the resulting
+    # forecast is anchored to primary regressions and not another independent score.
+    primary = sum((imp / 100.0) * (X @ heads[name] + 70.0)
+                  for name, _, imp in V3_OBJECTIVES)
+    for side in range(2):
+        meta = HistGradientBoostingRegressor(
+            max_iter=45, learning_rate=0.055, max_leaf_nodes=9,
+            min_samples_leaf=max(12, int(len(X) * 0.008)),
+            l2_regularization=12.0, random_state=42)
+        meta.fit(X[:, 1:], np.clip(y[:, side] - primary[:, side], -28, 28))
+        meta_models.append(meta)
+    residuals = y - primary
+    # Empirical residuals from fitted training data provide provisional
+    # variability, NOT calibrated out-of-sample 95% coverage.
+    spread_sd = np.std(residuals, axis=0, ddof=1)
+    spread_sd = np.clip(spread_sd, 9.0, 24.0)
+    corr = np.corrcoef(residuals.T)[0, 1] if len(residuals) > 5 else 0.15
+    corr = float(np.clip(corr if np.isfinite(corr) else 0.15, -0.25, 0.55))
+    return {
+        "features": feat, "matrix_columns": features,
+        "imputer": imputer, "scaler": scaler, "heads": heads,
+        "meta": meta_models, "sd": spread_sd, "corr": corr,
+        "rows": len(work), "diagnostics": pd.DataFrame(diagnostics),
+        "validation": validation,
+    }, None
+
+
+def v3_predict_regressions(engine, catalog, acr1, acr2, ctx1, ctx2, fixture):
+    def side(acr, opp, ctx, ml_col, signed):
+        src = v3_current_features(catalog, acr, opp, engine["features"],
+                                  signed, n(fixture.get("OverUnder", np.nan)),
+                                  n(fixture.get(ml_col, np.nan)), ctx["HAN"])
+        xf = pd.DataFrame([{col: src.get(col, np.nan)
+                            for col in engine["matrix_columns"]}])
+        X = engine["scaler"].transform(engine["imputer"].transform(xf))
+        X = np.column_stack([np.ones(len(X)), np.clip(X, -8, 8)])
+        forecasts = {}
+        for name, _, _ in V3_OBJECTIVES:
+            forecasts[name] = (X @ engine["heads"][name] + 70.0)[0]
+        primary = sum((imp / 100.0) * forecasts[name]
+                      for name, _, imp in V3_OBJECTIVES)
+        correction = np.array([m.predict(X[:, 1:])[0] for m in engine["meta"]])
+        return primary, correction, forecasts
+    favorite = key_text(fixture.get("Favorite", ""))
+    magnitude = n(fixture.get("Spread", np.nan))
+    if pd.isna(magnitude):
+        signed1 = signed2 = np.nan
+    elif favorite in (ctx1["TEAM"], acr1.casefold()):
+        signed1, signed2 = -abs(float(magnitude)), abs(float(magnitude))
+    elif favorite in (ctx2["TEAM"], acr2.casefold()):
+        signed1, signed2 = abs(float(magnitude)), -abs(float(magnitude))
+    else:
+        signed1 = signed2 = np.nan
+    a, ma, heads_a = side(acr1, acr2, ctx1, "ML1", signed1)
+    b, mb, heads_b = side(acr2, acr1, ctx2, "ML2", signed2)
+    # A team's own scoring model gets 75%, opposing allowed-score gets 25%.
+    p1 = 0.75 * a[0] + 0.25 * b[1]
+    p2 = 0.75 * b[0] + 0.25 * a[1]
+    meta1 = 0.75 * ma[0] + 0.25 * mb[1]
+    meta2 = 0.75 * mb[0] + 0.25 * ma[1]
+    detail = []
+    for name, _, importance in V3_OBJECTIVES:
+        h1, h2 = heads_a[name], heads_b[name]
+        detail.append({"Objective": name, "Weight (%)": importance,
+                       ctx1["NAME"]: round(float(.75 * h1[0] + .25 * h2[1]), 1),
+                       ctx2["NAME"]: round(float(.75 * h2[0] + .25 * h1[1]), 1)})
+    return {"regression": np.array([p1, p2]),
+            "meta": np.array([meta1, meta2]), "detail": pd.DataFrame(detail)}
+
+
+def v3_odds_estimate(current_games, fixture, ctx1, ctx2):
+    """Within-five comparable spread/total markets, recency-smoothed."""
+    if current_games is None or current_games.empty:
+        return None, pd.DataFrame()
+    spread = n(fixture.get("Spread", np.nan))
+    total = n(fixture.get("OverUnder", np.nan))
+    favorite = key_text(fixture.get("Favorite", ""))
+    if pd.isna(spread) or pd.isna(total) or favorite not in {
+        ctx1["TEAM"], ctx2["TEAM"], key_text(ctx1["NAME"]), key_text(ctx2["NAME"])
+    }:
+        return None, pd.DataFrame()
+    favorite_is_first = favorite in {ctx1["TEAM"], key_text(ctx1["NAME"])}
+    magnitude = abs(float(spread))
+    # Comparables are games, not team-game rows: do not count both team sides
+    # twice when COMP_STAT contains one observation per team.
+    src = current_games.drop_duplicates("GAME_ID") if "GAME_ID" in current_games else current_games
+    if "SPREAD" not in src or "TOTAL_LINE" not in src:
+        return None, pd.DataFrame()
+    ss = n(src["SPREAD"])
+    tt = n(src["TOTAL_LINE"])
+    close_spread = (ss.abs() - magnitude).abs() <= 5.0
+    close_total = (tt - float(total)).abs() <= 5.0
+    subsets = [("Similar spread", close_spread), ("Similar total", close_total),
+               ("Both within 5", close_spread & close_total)]
+    rows = []
+    comps = []
+    for name, mask in subsets:
+        g = src.loc[mask & ss.notna() & tt.notna()].copy()
+        if g.empty:
+            rows.append({"Comparison": name, "Games": 0})
+            continue
+        ws = g["_WEIGHT"].to_numpy(float)
+        diff = (n(g["PTS"]) - n(g["OPP_PTS"])).to_numpy(float)
+        actual_market = (-n(g["SPREAD"])).to_numpy(float)
+        total_resid = (n(g["PTS"]) + n(g["OPP_PTS"]) - n(g["TOTAL_LINE"])).to_numpy(float)
+        mask_valid = np.isfinite(diff) & np.isfinite(actual_market) & np.isfinite(total_resid)
+        if not mask_valid.any():
+            continue
+        ws, diff, actual_market, total_resid = (z[mask_valid] for z in (ws, diff, actual_market, total_resid))
+        # Team orientation: favorite's true margin, accounting for signed historical spread.
+        fav_margins = np.where(actual_market >= 0, diff, -diff)
+        spread_resid = fav_margins - np.abs(actual_market)
+        cover = np.average(spread_resid > 0, weights=ws)
+        over = np.average(total_resid > 0, weights=ws)
+        es = ws.sum()**2 / np.square(ws).sum()
+        rows.append({"Comparison": name, "Games": len(ws),
+                     "Favorite win": round(float(np.average(fav_margins > 0, weights=ws)), 3),
+                     "Underdog win": round(float(np.average(fav_margins < 0, weights=ws)), 3),
+                     "Favorite cover": round(float(cover), 3),
+                     "Underdog cover": round(float(np.average(spread_resid < 0, weights=ws)), 3),
+                     "Over": round(float(over), 3),
+                     "Under": round(float(np.average(total_resid < 0, weights=ws)), 3),
+                     "Spread residual": round(float(np.average(spread_resid, weights=ws)), 1),
+                     "Total residual": round(float(np.average(total_resid, weights=ws)), 1)})
+        # Shrink residual effects strongly when only a handful of comparables exist.
+        weight = (1.5 if name == "Both within 5" else 0.7) * es / (es + 30.0)
+        comps.append((weight, float(np.average(spread_resid, weights=ws)),
+                      float(np.average(total_resid, weights=ws))))
+    if not comps:
+        return None, pd.DataFrame(rows)
+    mass = sum(q[0] for q in comps)
+    adj_spread = np.clip(sum(q[0] * q[1] for q in comps) / mass, -6, 6)
+    adj_total = np.clip(sum(q[0] * q[2] for q in comps) / mass, -8, 8)
+    # Market anchor adjusts by demonstrated average historical differences.
+    m = magnitude + .35 * adj_spread
+    if not favorite_is_first:
+        m *= -1
+    t = float(total) + .35 * adj_total
+    return np.array([(t + m) / 2, (t - m) / 2]), pd.DataFrame(rows)
+
+
+def v3_tendency_adjustment(games, ctx1, ctx2, fixture):
+    """Small sample-size-adjusted score shift from performance versus lines."""
+    shifts = []
+    for ctx in (ctx1, ctx2):
+        sub = games.loc[games["TEAM"].eq(ctx["TEAM"])] if not games.empty else pd.DataFrame()
+        if sub.empty:
+            shifts.append(0.0)
+            continue
+        w = sub["_WEIGHT"].to_numpy(float)
+        spread_delta = n(sub.get("COVER_MARGIN_CALC", pd.Series(np.nan, index=sub.index))).to_numpy(float)
+        total_delta = n(sub.get("OVER_MARGIN_CALC", pd.Series(np.nan, index=sub.index))).to_numpy(float)
+        effective = w.sum()**2 / np.sum(w**2)
+        trust = effective / (effective + 25.0)
+        vals = []
+        for delta in (spread_delta, total_delta):
+            good = np.isfinite(delta)
+            if np.any(good):
+                vals.append(float(np.average(np.clip(delta[good], -12, 12), weights=w[good])))
+        shifts.append(float(np.clip(trust * np.mean(vals) * .25, -4, 4)) if vals else 0.0)
+    return np.array(shifts)
+
+
+def v3_blend_forecasts(historical, modeled, odds, tendency):
+    available = {"Team/coach history": np.asarray(historical, dtype=float)}
+    if modeled is not None:
+        available["Regression objectives"] = modeled["regression"]
+        available["Supervised correction"] = modeled["regression"] + np.clip(modeled["meta"], -8, 8)
+    if odds is not None:
+        available["Comparable odds"] = odds
+    if tendency is not None:
+        available["Betting tendencies"] = available.get("Team/coach history", historical) + tendency
+    valid = {k: v for k, v in available.items() if np.isfinite(v).all()}
+    if not valid:
+        return np.array([np.nan, np.nan]), {}
+    total = sum(V3_WEIGHTS[k] for k in valid)
+    shares = {k: V3_WEIGHTS[k] / total for k in valid}
+    final = sum(shares[k] * valid[k] for k in valid)
+    return np.maximum(0.0, final), shares
+
+
+def v3_simulate(p1, p2, first, second, engine, games, seed_key):
+    """One joint distribution powers ML, ATS, totals and predictive ranges."""
+    fallback_sd = np.array([scoring_dispersion(first, second),
+                            scoring_dispersion(second, first)])
+    if engine is not None:
+        model_sd = np.asarray(engine["sd"], dtype=float)
+        sd = np.clip(.5 * fallback_sd + .5 * model_sd, 8, 22)
+        corr = engine["corr"]
+    else:
+        sd = np.clip(fallback_sd, 8, 23)
+        corr = 0.17
+    cov = np.array([[sd[0]**2, corr * sd[0] * sd[1]],
+                    [corr * sd[0] * sd[1], sd[1]**2]])
+    seed = zlib.crc32(str(seed_key).encode("utf-8"))
+    rng = np.random.default_rng(seed)
+    scores = rng.multivariate_normal([p1, p2], cov, size=V3_SIMULATIONS)
+    # Basketball is scored in whole points, but round only after simulation.
+    scores = np.rint(np.maximum(0, scores)).astype(int)
+    ties = np.flatnonzero(scores[:, 0] == scores[:, 1])
+    if ties.size:
+        # NCAA games cannot end tied. An overtime adds scoring to both teams;
+        # assign a random 1–7 point OT margin to resolve each simulated tie.
+        extra = rng.integers(4, 12, size=ties.size)
+        margin = rng.integers(1, 8, size=ties.size)
+        winner_first = rng.random(ties.size) < 0.5
+        scores[ties, 0] += extra + winner_first * margin
+        scores[ties, 1] += extra + (~winner_first) * margin
+    return scores
+
+
+def v3_event_probabilities(scores, spread_signed, ou_line):
+    margin = scores[:, 0] - scores[:, 1]
+    total = scores.sum(axis=1)
+    result = {"ml1": float(np.mean(margin > 0)),
+              "ml2": float(np.mean(margin < 0)),
+              "ml_push": float(np.mean(margin == 0))}
+    if np.isfinite(spread_signed):
+        cover = margin + spread_signed
+        result.update({"cover1": float(np.mean(cover > 0)),
+                       "cover2": float(np.mean(cover < 0)),
+                       "spread_push": float(np.mean(cover == 0))})
+    if np.isfinite(ou_line):
+        over = total - ou_line
+        result.update({"over": float(np.mean(over > 0)),
+                       "under": float(np.mean(over < 0)),
+                       "total_push": float(np.mean(over == 0))})
+    return result
 
 
 # ============================================================
@@ -1364,10 +2140,9 @@ st.caption(
 )
 
 st.info(
-    "Historical/team-coach context + optional "
-    "current-season ML (30% from Nov 20). "
-    "Model weights and 95% intervals "
-    "are provisional and not yet backtested."
+    "V3: 10 objective-weighted score regressions (42%), team/coach history "
+    "(33%), odds comparables (10%), correction ML (10%), tendencies (5%) "
+    "when all components are eligible. Only past results are used."
 )
 
 
@@ -1376,41 +2151,21 @@ st.info(
 # ============================================================
 
 ml_engine = None
-
-ml_note = (
-    "ML inactive until November 20, 2026."
-)
-
+ml_note = "V3 regression system inactive until November 20, 2026."
 if today >= ML_START_DATE:
     if current.empty:
-        ml_note = (
-            "ML unavailable: COMP_STAT has no "
-            "completed games before the selected date."
-        )
-
+        ml_note = "V3 unavailable: no completed COMP_STAT games before databook date."
     else:
-        ml_engine, ml_problem = train_season_ml(
-            (
-                (DATA / FILES["season"]).stat().st_mtime_ns,
-                today.isoformat()
-            ),
-            current
+        ml_engine, problem = v3_train_engine(
+            ((DATA / FILES["season"]).stat().st_mtime_ns, today.isoformat()),
+            current,
         )
-
-        if ml_engine:
-            ml_note = (
-                f"ML active: {ml_engine['rows']} "
-                "current-season team-game rows, "
-                "3 regressors per score target, "
-                "30% influence."
-            )
+        if ml_engine is None:
+            ml_note = f"V3 regression unavailable: {problem} Historical model remains active."
         else:
-            ml_note = (
-                f"ML unavailable: {ml_problem}"
-            )
-
+            ml_note = (f"V3 active: {ml_engine['rows']} eligible COMP_STAT team-game rows; "
+                       "10 regression objectives + a lightweight correction model.")
 st.caption(ml_note)
-
 
 if todays.empty:
     st.info(
@@ -1420,13 +2175,17 @@ if todays.empty:
 
 
 # ============================================================
-# FUTURE GAME ORDERING BY TEAM RATINGS
+# ### FUTURE GAME ORDERING BY TEAM RATINGS ###
 # ============================================================
 
 # Once Rankings exposes a numeric Team Rating
 # keyed by Acronym, sort matchups by:
+#
 # Team1_Rating + Team2_Rating
+#
 # Highest combined rating first.
+#
+# Rankings are not yet built, so sorting remains off.
 
 
 # ============================================================
@@ -1530,49 +2289,41 @@ for _, fixture in todays.iterrows():
         # HISTORICAL PREDICTION
         # ----------------------------------------------------
 
-        m = model_matchup(
-            first,
-            second
-        )
-
+        m = model_matchup(first, second)
+        historical = np.array([m["p1"], m["p2"]], dtype=float)
         ml_prediction = None
-
-        # ----------------------------------------------------
-        # ADD ML WHEN AVAILABLE
-        # ----------------------------------------------------
-
         if ml_engine is not None:
             try:
-                ml_prediction = ml_predict_matchup(
-                    ml_engine,
-                    catalog,
-                    acr1,
-                    acr2
-                )
-
-                for idx in (1, 2):
-                    team_est = m.get(f"team{idx}_context", np.nan)
-                    conf_est = m.get(f"team{idx}_conference", np.nan)
-                    if not np.isfinite(team_est):
-                        team_est = m[f"p{idx}"]
-                    if np.isfinite(conf_est):
-                        history_score = (ML_CONTEXT_SHARE * team_est
-                                         + ML_CONFERENCE_SHARE * conf_est)
-                    else:
-                        history_score = (1 - ML_INFLUENCE) * team_est
-                    m[f"p{idx}"] = history_score + ML_INFLUENCE * ml_prediction[f"p{idx}"]
-
-            except (
-                KeyError,
-                ValueError,
-                TypeError
-            ) as exc:
-                st.caption(
-                    f"ML unavailable for this matchup: {exc}"
-                )
-
-        range1 = score_interval(ctx1, ctx2, games, m["p1"], m["sd1"])
-        range2 = score_interval(ctx2, ctx1, games, m["p2"], m["sd2"])
+                ml_prediction = v3_predict_regressions(
+                    ml_engine, catalog, acr1, acr2, ctx1, ctx2, fixture)
+            except (KeyError, ValueError, TypeError) as exc:
+                st.caption(f"V3 regression unavailable for matchup: {exc}")
+        odds_pred, odds_details = v3_odds_estimate(current, fixture, ctx1, ctx2)
+        tendencies = v3_tendency_adjustment(games, ctx1, ctx2, fixture)
+        blended, active_shares = v3_blend_forecasts(
+            historical, ml_prediction, odds_pred, tendencies)
+        m["p1"], m["p2"] = map(float, blended)
+        if not np.isfinite(blended).all():
+            st.warning("Unable to produce a finite score estimate for this matchup.")
+            continue
+        simulations = v3_simulate(m["p1"], m["p2"], first, second,
+                                  ml_engine, games, fixture.get("GameID", team1 + team2))
+        range1 = np.quantile(simulations[:, 0], [0.025, 0.975])
+        range2 = np.quantile(simulations[:, 1], [0.025, 0.975])
+        favorite = key_text(fixture.get("Favorite", ""))
+        spread = n(fixture.get("Spread", np.nan))
+        total_line = n(fixture.get("OverUnder", np.nan))
+        signed = np.nan
+        if pd.notna(spread):
+            if favorite in {team1.casefold(), acr1.casefold()}:
+                signed = -abs(float(spread))
+            elif favorite in {team2.casefold(), acr2.casefold()}:
+                signed = abs(float(spread))
+        probabilities = v3_event_probabilities(
+            simulations, signed, float(total_line) if pd.notna(total_line) else np.nan)
+        win1 = probabilities["ml1"]
+        win2 = probabilities["ml2"]
+        # Tied regulation-like scores were resolved by the joint OT simulator.
 
         # ----------------------------------------------------
         # PROJECTED SCORES
@@ -1587,7 +2338,7 @@ for _, fixture in todays.iterrows():
             )
 
             st.caption(
-                "Uncalibrated 95% historical range: "
+                "Approx. 95% simulated range: "
                 f"{range1[0]:.0f}"
                 "–"
                 f"{range1[1]:.0f}"
@@ -1600,7 +2351,7 @@ for _, fixture in todays.iterrows():
             )
 
             st.caption(
-                "Uncalibrated 95% historical range: "
+                "Approx. 95% simulated range: "
                 f"{range2[0]:.0f}"
                 "–"
                 f"{range2[1]:.0f}"
@@ -1608,10 +2359,6 @@ for _, fixture in todays.iterrows():
 
         margin = m["p1"] - m["p2"]
         total = m["p1"] + m["p2"]
-
-        win1 = normal_cdf(
-            margin / m["sd_margin"]
-        )
 
         st.write(
             f"**Projected margin:** "
@@ -1627,18 +2374,16 @@ for _, fixture in todays.iterrows():
             + " · "
             + show_probability(
                 team2,
-                1 - win1
+                win2
             )
         )
 
         # ----------------------------------------------------
-        # MONEYLINE
+        # MARKET MONEYLINE: NORMALIZED TO 100% IF BOTH SIDES EXIST
         # ----------------------------------------------------
-
         st.markdown("#### Betting probabilities")
         raw1 = american_implied(fixture.get("ML1", np.nan))
         raw2 = american_implied(fixture.get("ML2", np.nan))
-
         if np.isfinite(raw1) and np.isfinite(raw2) and raw1 + raw2 > 0:
             implied1 = raw1 / (raw1 + raw2)
             implied2 = raw2 / (raw1 + raw2)
@@ -1652,60 +2397,66 @@ for _, fixture in todays.iterrows():
             {"Selection": team1, "Odds": fixture.get("ML1", np.nan),
              "Implied Probability": implied1, "Model Probability": win1},
             {"Selection": team2, "Odds": fixture.get("ML2", np.nan),
-             "Implied Probability": implied2, "Model Probability": 1 - win1},
+             "Implied Probability": implied2, "Model Probability": win2},
         ], shade_model=True)
 
         # ----------------------------------------------------
-        # SPREAD
+        # SPREAD — derived from SAME joint score simulations as ML
         # ----------------------------------------------------
-
-        favorite = str(fixture.get("Favorite", "")).strip().casefold()
-        spread = n(fixture.get("Spread", np.nan))
-        total_line = n(fixture.get("OverUnder", np.nan))
-
         st.markdown("**Spread**")
-        if pd.notna(spread):
-            magnitude = abs(float(spread))
-            if favorite in {team1.casefold(), acr1.casefold()}:
-                signed = -magnitude
-            elif favorite in {team2.casefold(), acr2.casefold()}:
-                signed = magnitude
-            else:
-                signed = np.nan
-
-            if np.isfinite(signed):
-                cover1 = empirical_cover_probability(
-                    first, second, ctx1, ctx2, margin, signed, m["sd_margin"], games
-                )
-
-                cover1 = min(cover1, win1) if signed < 0 else max(cover1, win1) if signed > 0 else win1
-
-                betting_table([
-                    {"Selection": f"{team1} {signed:+g}", "Odds": "—",
-                     "Implied Probability": 0.5, "Model Probability": cover1},
-                    {"Selection": f"{team2} {-signed:+g}", "Odds": "—",
-                     "Implied Probability": 0.5, "Model Probability": 1 - cover1},
-                ])
-            else:
-                st.caption("Favorite does not match either team; spread omitted.")
+        if np.isfinite(signed):
+            cover1 = probabilities["cover1"]
+            cover2 = probabilities["cover2"]
+            betting_table([
+                {"Selection": f"{team1} {signed:+g}", "Odds": "—",
+                 "Implied Probability": 0.5, "Model Probability": cover1},
+                {"Selection": f"{team2} {-signed:+g}", "Odds": "—",
+                 "Implied Probability": 0.5, "Model Probability": cover2},
+            ])
+            if probabilities.get("spread_push", 0) > 0:
+                st.caption(f"Simulated spread push: {probabilities['spread_push']:.1%}")
         else:
-            st.caption("No spread listed.")
+            st.caption("No usable spread/favorite listed.")
 
         # ----------------------------------------------------
-        # TOTAL
+        # TOTAL — same joint score simulations, not independent bell curve
         # ----------------------------------------------------
-
         st.markdown("**Over / Under**")
         if pd.notna(total_line):
-            over = normal_cdf((total - float(total_line)) / m["sd_total"])
             betting_table([
                 {"Selection": f"Over {float(total_line):g}", "Odds": "—",
-                 "Implied Probability": 0.5, "Model Probability": over},
+                 "Implied Probability": 0.5, "Model Probability": probabilities["over"]},
                 {"Selection": f"Under {float(total_line):g}", "Odds": "—",
-                 "Implied Probability": 0.5, "Model Probability": 1 - over},
+                 "Implied Probability": 0.5, "Model Probability": probabilities["under"]},
             ])
+            if probabilities.get("total_push", 0) > 0:
+                st.caption(f"Simulated total push: {probabilities['total_push']:.1%}")
         else:
             st.caption("No total listed.")
+
+        with st.expander("V3: objective regressions, ensemble weights and comparable odds"):
+            st.caption("Active weights renormalize when data is insufficient. "
+                       "Regression objectives are smooth optimization surrogates, "
+                       "not demonstrated accuracy or profit guarantees.")
+            st.dataframe(pd.DataFrame([
+                {"Component": k, "Active weight": v} for k, v in active_shares.items()
+            ]).style.format({"Active weight": "{:.1%}"}),
+                hide_index=True, use_container_width=True)
+            if ml_engine is not None and ml_engine.get("validation"):
+                st.write("**Chronological holdout — ten-regression component only**")
+                st.dataframe(pd.DataFrame([ml_engine["validation"]]), hide_index=True,
+                             use_container_width=True)
+                st.caption("Not full-model backtesting; these values are measured on later games "
+                           "that the holdout regressions did not train on.")
+            if ml_prediction is not None:
+                st.write("**Ten training objectives and their score forecasts**")
+                st.dataframe(ml_prediction["detail"], hide_index=True,
+                             use_container_width=True)
+            if not odds_details.empty:
+                st.write("**Completed COMP_STAT games with comparable market lines (±5)**")
+                st.dataframe(odds_details, hide_index=True, use_container_width=True)
+            st.write("**Simulated probability diagnostics**")
+            st.json({k: round(float(v), 4) for k, v in probabilities.items()})
 
         # ----------------------------------------------------
         # HISTORICAL MARKET PERFORMANCE
@@ -1750,16 +2501,14 @@ for _, fixture in todays.iterrows():
                     (games["TEAM"] == ctx["TEAM"])
                     & (games["FAVORITE"] == ctx["TEAM"])
                 ] if "FAVORITE" in games.columns else pd.DataFrame()
-
+                # FAVORITE may contain acronyms; compare both forms.
                 if "FAVORITE" in games.columns:
                     acronym = (acr1 if label == team1 else acr2).casefold()
                     subset = games.loc[
                         (games["TEAM"] == ctx["TEAM"])
                         & (games["FAVORITE"].astype(str).str.strip().str.casefold().isin([ctx["TEAM"], acronym]))
                     ]
-
                 row = {"Team": label, "Games": len(subset), "Win as favorite": np.nan, "Cover as favorite": np.nan}
-
                 if not subset.empty:
                     w = subset["_WEIGHT"].to_numpy(dtype=float)
                     for column, outname in (("WIN_RESULT", "Win as favorite"), ("COVER_RESULT", "Cover as favorite")):
@@ -1768,7 +2517,6 @@ for _, fixture in todays.iterrows():
                         if mask.any():
                             row[outname] = float(np.average(x[mask], weights=w[mask]))
                 fav_rows.append(row)
-
             st.dataframe(
                 pd.DataFrame(fav_rows).style.format({
                     "Win as favorite": "{:.1%}", "Cover as favorite": "{:.1%}"
@@ -1783,9 +2531,8 @@ for _, fixture in todays.iterrows():
             )
 
         # ----------------------------------------------------
-        # HISTORICAL MARGIN THRESHOLDS
+        # HISTORICAL MARGIN THRESHOLDS (NEW SECTION)
         # ----------------------------------------------------
-
         with st.expander("Historical win / spread / total margins: ±5 and ±10"):
             st.caption(
                 "Hit +5/+10 means the team exceeded the relevant threshold "
@@ -1794,7 +2541,6 @@ for _, fixture in todays.iterrows():
                 "are used for ATS and totals, and current-season games "
                 "carry 3x weight. Effective games reflect concentration."
             )
-
             for heading, col in (
                 ("Moneyline: final winning margin", "WIN_MARGIN"),
                 ("Spread: margin relative to historical spread", "COVER_MARGIN_CALC"),
@@ -1819,51 +2565,13 @@ for _, fixture in todays.iterrows():
                     }, na_rep="N/A"),
                     hide_index=True, use_container_width=True
                 )
-
             st.caption(
                 "Favorite win percentage and favorite cover percentage are "
                 "different events. ATS historical margins are not the same "
                 "thing as today's spread probability."
             )
 
-        # ----------------------------------------------------
-        # MACHINE LEARNING DETAILS
-        # ----------------------------------------------------
-
-        if ml_prediction is not None:
-            with st.expander(
-                "Machine learning: three model "
-                "projections (30% blend)"
-            ):
-                st.caption(
-                    "Trained only on completed COMP_STAT "
-                    "rows using pregame numerical statistics. "
-                    "Team, coach, conference, and postgame "
-                    "features are excluded."
-                )
-
-                model_rows = []
-
-                for name, scores in (
-                    ml_prediction["models"].items()
-                ):
-                    model_rows.append({
-                        "Method": name,
-                        team1: round(scores[0], 1),
-                        team2: round(scores[1], 1)
-                    })
-
-                st.dataframe(
-                    pd.DataFrame(model_rows),
-                    hide_index=True,
-                    use_container_width=True
-                )
-
-                st.write(
-                    "**ML-only consensus:** "
-                    f"{team1} {ml_prediction['p1']:.1f} – "
-                    f"{team2} {ml_prediction['p2']:.1f}"
-                )
+        # V3 ten-objective diagnostics appear in the expanded panel above.
 
         # ----------------------------------------------------
         # PERIODS AND OVERTIME
@@ -1939,210 +2647,21 @@ for _, fixture in todays.iterrows():
                     use_container_width=True
                 )
 
-        # ====================================================
-        # CURRENT YEAR GAMES — RESULTS & BETTING HISTORY
-        # ====================================================
-
-        with st.expander(
-            "Current Year Games — Results and Betting History"
-        ):
+        # ----------------------------------------------------
+        # CURRENT YEAR GAMES — DISPLAY ONLY
+        # ----------------------------------------------------
+        with st.expander("Current Year Games — results and betting history"):
             st.caption(
-                "Completed current-season games only. "
-                "Green = Win, Red = Loss, Gray = Push. "
-                "O/U results represent an OVER bet."
+                "Completed 2026–27 games from COMP_STAT before the databook date. "
+                "Final scores are shown team-first. ML and spread W/L refer to "
+                "the listed team; Over W means the game went OVER the listed total. "
+                "Green = win, red = loss, gray = push; N/A means no listed line."
             )
-
-            def format_number(value, signed=False):
-                try:
-                    value = float(value)
-                    if not np.isfinite(value):
-                        return "N/A"
-                    return (
-                        f"{value:+g}" if signed
-                        else f"{value:g}"
-                    )
-                except (ValueError, TypeError):
-                    return "N/A"
-
-            def result_color(value):
-                if value == "W":
-                    return (
-                        "background-color: #c9efd2; "
-                        "color: #14532d; font-weight: bold"
-                    )
-                if value == "L":
-                    return (
-                        "background-color: #f7c8c8; "
-                        "color: #7f1d1d; font-weight: bold"
-                    )
-                if value == "Push":
-                    return (
-                        "background-color: #e5e7eb; "
-                        "color: #374151; font-weight: bold"
-                    )
-                return ""
-
-            for display_team, display_acr in (
-                (team1, acr1),
-                (team2, acr2)
-            ):
-                st.markdown(f"**{display_team}**")
-
-                if current.empty:
-                    st.caption(
-                        "No completed current-season games."
-                    )
-                    continue
-
-                team_mask = current["TEAM"].eq(
-                    display_team.casefold().strip()
-                )
-
-                if "TEAM_ACR" in current.columns:
-                    team_mask = team_mask | (
-                        current["TEAM_ACR"]
-                        .astype(str)
-                        .str.strip()
-                        .str.upper()
-                        .eq(display_acr.upper())
-                    )
-
-                team_games = current.loc[
-                    team_mask
-                ].sort_values(
-                    "_DATE",
-                    ascending=False
-                )
-
-                rows = []
-
-                for _, game in team_games.iterrows():
-                    pts = n(game.get("PTS", np.nan))
-                    opp_pts = n(
-                        game.get("OPP_PTS", np.nan)
-                    )
-
-                    if pd.isna(pts) or pd.isna(opp_pts):
-                        continue
-
-                    margin = float(pts - opp_pts)
-                    game_spread = n(
-                        game.get("SPREAD", np.nan)
-                    )
-                    game_total = n(
-                        game.get("TOTAL_LINE", np.nan)
-                    )
-                    game_ml = valid_odds(
-                        game.get("ML", np.nan)
-                    )
-
-                    if np.isfinite(game_ml):
-                        ml_result = (
-                            "W" if margin > 0
-                            else "L" if margin < 0
-                            else "Push"
-                        )
-                    else:
-                        ml_result = "N/A"
-
-                    if pd.notna(game_spread):
-                        ats_margin = (
-                            margin + float(game_spread)
-                        )
-                        spread_result = (
-                            "W" if ats_margin > 0
-                            else "L" if ats_margin < 0
-                            else "Push"
-                        )
-                    else:
-                        spread_result = "N/A"
-
-                    if pd.notna(game_total):
-                        ou_margin = (
-                            float(pts + opp_pts)
-                            - float(game_total)
-                        )
-                        ou_result = (
-                            "W" if ou_margin > 0
-                            else "L" if ou_margin < 0
-                            else "Push"
-                        )
-                    else:
-                        ou_result = "N/A"
-
-                    date_value = game["_DATE"]
-
-                    rows.append({
-                        "Date": date_value.strftime(
-                            "%m/%d/%y"
-                        ),
-                        "Opponent": str(
-                            game.get("OPP", "")
-                        ).title(),
-                        "HAN": str(
-                            game.get("HAN", "")
-                        ).upper(),
-                        "Final": (
-                            f"{pts:g}–{opp_pts:g}"
-                        ),
-                        "ML Odds": (
-                            format_number(game_ml, True)
-                        ),
-                        "ML Result": ml_result,
-                        "Spread": format_number(
-                            game_spread, True
-                        ),
-                        "Spread Result": spread_result,
-                        "O/U": format_number(game_total),
-                        "Over Result": ou_result,
-                    })
-
-                if not rows:
-                    st.caption(
-                        "No completed games before "
-                        "the databook date."
-                    )
-                    continue
-
-                result_df = pd.DataFrame(rows)
-
-                def shade_current_row(row):
-                    styles = [
-                        "" for _ in row.index
-                    ]
-
-                    pairs = [
-                        ("ML Result", "ML Odds"),
-                        ("Spread Result", "Spread"),
-                        ("Over Result", "O/U"),
-                    ]
-
-                    for result_col, value_col in pairs:
-                        color = result_color(
-                            row[result_col]
-                        )
-                        styles[
-                            row.index.get_loc(result_col)
-                        ] = color
-                        styles[
-                            row.index.get_loc(value_col)
-                        ] = color
-
-                    return styles
-
-                st.dataframe(
-                    result_df.style.apply(
-                        shade_current_row,
-                        axis=1
-                    ),
-                    hide_index=True,
-                    use_container_width=True
-                )
-
-
+            show_current_year_results(current, team1, acr1)
+            show_current_year_results(current, team2, acr2)
 
 st.caption(
-    "Score ranges use weighted historical tails and may not achieve "
+    "Score ranges come from a provisional joint simulation and may not achieve "
     "95% actual coverage. Probabilities and intervals have not been calibrated. "
     "When backtesting, All_Stats must reflect "
     "the selected historical date."
