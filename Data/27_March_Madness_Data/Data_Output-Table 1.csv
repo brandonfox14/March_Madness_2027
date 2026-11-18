@@ -1,36 +1,36 @@
 ,,,,,
 ,TEAM1,TEAM2,,MM,11
-Teams,FIU,Florida Gulf Coast,,DD,17
-Acronyms,FIU,FGCU,,YYYY,2026
-Conference,CUSA,ASUN,,,
-Coach,Joey Cantens,Pat Chambers,,,
+Teams,South Dakota State,Northern Colorado,,DD,18
+Acronyms,SDST,UNCO,,YYYY,2026
+Conference,Summit,Big Sky,,,
+Coach,Bryan Petersen,Steve Smiley,,,
 Location,ERROR,ERROR,,,
-HAN,NEUTRAL,NEUTRAL,,ID,FGCU-FIU-11-17
+HAN,NEUTRAL,NEUTRAL,,ID,SDST-UNCO-11-18
 ML,ERROR,ERROR,,Location,ERROR
 Spread,,,,Home,ERROR
 OverUnder,ERROR,ERROR,,Favorite,ERROR
-1H,50,41,,Line,ERROR
-2H,39,39,,OverUnder,ERROR
+1H,28,17,,Line,ERROR
+2H,43,29,,OverUnder,ERROR
 OT,NA,NA,,ML1,ERROR
-TOTAL,89,80,,ML2,ERROR
-FGM,36,26,,1,ERROR
-FGA,69,62,,2,ERROR
-3M,8,8,,,
-3A,25,26,,,
-FTM,9,20,,,
-FTA,9,23,,89,80
-REB,36,32,,,
-OREB,9,9,,,
-DREB,27,23,,,
-AST,11,10,,,
-STL,6,8,,,
-BLK,9,4,,,
-TURN,10,11,,,
-POTURN,15,7,,,
-FBPTS,16,6,,,
-PTSPNT,46,36,,,
-FOUL,16,13,,,
+TOTAL,71,46,,ML2,ERROR
+FGM,24,13,,1,ERROR
+FGA,65,49,,2,ERROR
+3M,9,3,,,
+3A,27,22,,,
+FTM,14,17,,,
+FTA,19,27,,71,46
+REB,53,33,,,
+OREB,21,10,,,
+DREB,32,23,,,
+AST,15,6,,,
+STL,5,4,,,
+BLK,1,4,,,
+TURN,14,15,,,
+POTURN,9,9,,,
+FBPTS,0,6,,,
+PTSPNT,24,18,,,
+FOUL,22,18,,,
 TECH,0,0,,,
 FLAG,0,0,,,
-LLEAD,15,2,,,
-PLEAD,89,4,,,
+LLEAD,27,6,,,
+PLEAD,85,12,,,

@@ -51,12 +51,12 @@ Army,,,,,1
 ,Army,11,5,2026,1
 Auburn,,,,,0
 ,Auburn,12,1,2030,0
-Austin Peay,,,,,2
+Austin Peay,,,,,3
 ,Austin Peay,12,1,2030,0
 ,Austin Peay,12,1,2030,0
 ,Austin Peay,11,2,2026,1
 ,Austin Peay,11,10,2026,1
-,Austin Peay,11,17,2026,0
+,Austin Peay,11,17,2026,1
 ,Austin Peay,12,28,2026,0
 Ball State,,,,,1
 ,Ball State,12,1,2030,0
@@ -70,6 +70,7 @@ Bellarmine,,,,,1
 ,Bellarmine,11,11,2026,1
 Belmont,,,,,1
 ,Belmont,12,1,2030,0
+,Belmont,11,18,2026,0
 ,Belmont,11,5,2026,1
 Bethune Cookman,,,,,1
 ,Bethune Cookman,12,1,2030,0
@@ -137,9 +138,9 @@ Central Arkansas,,,,,1
 ,Central Arkansas,11,28,2026,0
 ,Central Arkansas,12,5,2026,0
 ,Central Arkansas,12,17,2026,0
-Central Connecticut,,,,,0
+Central Connecticut,,,,,1
 ,Central Connecticut,12,1,2030,0
-,Central Connecticut,11,17,2026,0
+,Central Connecticut,11,17,2026,1
 Central Michigan,,,,,1
 ,Central Michigan,12,1,2030,0
 ,Central Michigan,11,6,2026,1
@@ -173,6 +174,7 @@ Coastal Carolina,,,,,1
 ,Coastal Carolina,11,12,2026,1
 Colgate,,,,,0
 ,Colgate,12,1,2030,0
+,Colgate,11,18,2026,0
 Colorado,,,,,0
 ,Colorado,12,1,2030,0
 Colorado State,,,,,0
@@ -191,23 +193,23 @@ Cornell,,,,,1
 ,Cornell,11,8,2026,1
 Creighton,,,,,0
 ,Creighton,12,1,2030,0
-Dartmouth,,,,,1
+Dartmouth,,,,,2
 ,Dartmouth,12,1,2030,0
-,Dartmouth,11,17,2026,0
+,Dartmouth,11,17,2026,1
 ,Dartmouth,11,4,2026,1
 Davidson,,,,,0
 ,Davidson,12,1,2030,0
 ,Davidson,12,1,2030,0
 Dayton,,,,,0
 ,Dayton,12,1,2030,0
-Delaware,,,,,1
+Delaware,,,,,2
 ,Delaware,12,1,2030,0
 ,Delaware,12,1,2030,0
-,Delaware,11,17,2026,0
+,Delaware,11,17,2026,1
 ,Delaware,11,2,2026,1
-Delaware State,,,,,1
+Delaware State,,,,,2
 ,Delaware State,12,1,2030,0
-,Delaware State,11,17,2026,0
+,Delaware State,11,17,2026,1
 ,Delaware State,11,2,2026,1
 Denver,,,,,1
 ,Denver,12,1,2030,0
@@ -259,6 +261,7 @@ Evansville,,,,,1
 ,Evansville,11,2,2026,1
 Fairfield,,,,,0
 ,Fairfield,12,1,2030,0
+,Fairfield,11,18,2026,0
 Fairleigh Dickinson,,,,,1
 ,Fairleigh Dickinson,12,1,2030,0
 ,Fairleigh Dickinson,12,1,2030,0
@@ -521,6 +524,7 @@ Miami FL,,,,,0
 ,Miami FL,12,1,2030,0
 Miami OH,,,,,0
 ,Miami OH,12,1,2030,0
+,Miami OH,11,18,2026,0
 Michigan,,,,,0
 ,Michigan,12,1,2030,0
 Michigan State,,,,,0
@@ -590,6 +594,7 @@ New Hampshire,,,,,1
 ,New Hampshire,11,11,2026,1
 New Haven,,,,,0
 ,New Haven,12,1,2030,0
+,New Haven,11,18,2026,0
 New Mexico,,,,,0
 ,New Mexico,12,1,2030,0
 New Mexico State,,,,,1
@@ -630,18 +635,18 @@ North Dakota State,,,,,1
 ,North Dakota State,12,1,2030,0
 ,North Dakota State,12,1,2030,0
 ,North Dakota State,11,2,2026,1
-North Florida,,,,,0
+North Florida,,,,,1
 ,North Florida,12,1,2030,0
 ,North Florida,12,1,2030,0
-,North Florida,11,17,2026,0
+,North Florida,11,17,2026,1
 North Texas,,,,,1
 ,North Texas,12,1,2030,0
 ,North Texas,11,2,2026,1
 Northeastern,,,,,0
 ,Northeastern,12,1,2030,0
-Northern Arizona,,,,,0
+Northern Arizona,,,,,1
 ,Northern Arizona,12,1,2030,0
-,Northern Arizona,11,17,2026,0
+,Northern Arizona,11,17,2026,1
 Northern Colorado,,,,,2
 ,Northern Colorado,12,1,2030,0
 ,Northern Colorado,12,1,2030,0
@@ -690,9 +695,9 @@ Oregon,,,,,0
 Oregon State,,,,,0
 ,Oregon State,12,1,2030,0
 ,Oregon State,12,1,2030,0
-Pacific,,,,,1
+Pacific,,,,,2
 ,Pacific,12,1,2030,0
-,Pacific,11,17,2026,0
+,Pacific,11,17,2026,1
 ,Pacific,11,3,2026,1
 Penn,,,,,1
 ,Penn,12,1,2030,0
@@ -812,10 +817,10 @@ SIU Edwardsville,,,,,2
 SMU,,,,,0
 ,SMU,12,1,2030,0
 ,SMU,12,1,2030,0
-South Alabama,,,,,0
+South Alabama,,,,,1
 ,South Alabama,12,1,2030,0
 ,South Alabama,12,1,2030,0
-,South Alabama,11,17,2026,0
+,South Alabama,11,17,2026,1
 South Carolina,,,,,0
 ,South Carolina,12,1,2030,0
 South Carolina State,,,,,1
@@ -841,15 +846,16 @@ Southeast Missouri State,,,,,2
 Southeastern Louisiana,,,,,0
 ,Southeastern Louisiana,12,1,2030,0
 ,Southeastern Louisiana,12,1,2030,0
-Southern,,,,,0
+Southern,,,,,1
 ,Southern,12,1,2030,0
-,Southern,11,17,2026,0
+,Southern,11,17,2026,1
 Southern Illinois,,,,,1
 ,Southern Illinois,12,1,2030,0
 ,Southern Illinois,12,1,2030,0
 ,Southern Illinois,11,2,2026,1
 Southern Indiana,,,,,1
 ,Southern Indiana,12,1,2030,0
+,Southern Indiana,11,18,2026,0
 ,Southern Indiana,11,4,2026,1
 Southern Miss,,,,,1
 ,Southern Miss,12,1,2030,0
@@ -882,10 +888,10 @@ Stetson,,,,,1
 Stonehill,,,,,1
 ,Stonehill,12,1,2030,0
 ,Stonehill,11,2,2026,1
-Stony Brook,,,,,1
+Stony Brook,,,,,2
 ,Stony Brook,12,1,2030,0
 ,Stony Brook,12,1,2030,0
-,Stony Brook,11,17,2026,0
+,Stony Brook,11,17,2026,1
 ,Stony Brook,11,2,2026,1
 Syracuse,,,,,0
 ,Syracuse,12,1,2030,0
@@ -975,10 +981,10 @@ UMass Lowell,,,,,1
 UMBC,,,,,1
 ,UMBC,12,1,2030,0
 ,UMBC,11,9,2026,1
-UMKC,,,,,0
+UMKC,,,,,1
 ,UMKC,12,1,2030,0
 ,UMKC,12,1,2030,0
-,UMKC,11,17,2026,0
+,UMKC,11,17,2026,1
 UNC Asheville,,,,,1
 ,UNC Asheville,12,1,2030,0
 ,UNC Asheville,11,4,2026,1
@@ -1004,6 +1010,7 @@ UT Arlington,,,,,2
 ,UT Arlington,11,2,2026,1
 UT Rio Grande Valley,,,,,1
 ,UT Rio Grande Valley,12,1,2030,0
+,UT Rio Grande Valley,11,18,2026,0
 ,UT Rio Grande Valley,11,2,2026,1
 Utah,,,,,0
 ,Utah,12,1,2030,0
@@ -1050,9 +1057,9 @@ Wagner,,,,,1
 ,Wagner,11,11,2026,1
 Wake Forest,,,,,0
 ,Wake Forest,12,1,2030,0
-Washington,,,,,0
+Washington,,,,,1
 ,Washington,12,1,2030,0
-,Washington,11,17,2026,0
+,Washington,11,17,2026,1
 Washington State,,,,,1
 ,Washington State,12,1,2030,0
 ,Washington State,11,14,2026,1
@@ -1105,6 +1112,7 @@ Wofford,,,,,2
 ,Wofford,11,8,2026,1
 Wright State,,,,,0
 ,Wright State,12,1,2030,0
+,Wright State,11,18,2026,0
 Wyoming,,,,,1
 ,Wyoming,12,1,2030,0
 ,Wyoming,12,1,2030,0
@@ -1118,20 +1126,12 @@ Yale,,,,,1
 Youngstown State,,,,,0
 ,Youngstown State,12,1,2030,0
 (blank),,,,,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
-,,11,17,2026,0
+,,11,18,2026,0
+,,11,18,2026,0
+,,11,18,2026,0
+,,11,18,2026,0
+,,11,18,2026,0
+,,11,18,2026,0
+,,11,18,2026,0
+,,11,18,2026,0
+,,11,18,2026,0
