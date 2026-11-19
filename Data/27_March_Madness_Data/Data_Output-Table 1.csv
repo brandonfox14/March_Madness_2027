@@ -1,36 +1,36 @@
 ,,,,,
 ,TEAM1,TEAM2,,MM,11
-Teams,South Dakota State,Northern Colorado,,DD,18
-Acronyms,SDST,UNCO,,YYYY,2026
-Conference,Summit,Big Sky,,,
-Coach,Bryan Petersen,Steve Smiley,,,
-Location,ERROR,ERROR,,,
-HAN,NEUTRAL,NEUTRAL,,ID,SDST-UNCO-11-18
-ML,ERROR,ERROR,,Location,ERROR
-Spread,,,,Home,ERROR
-OverUnder,ERROR,ERROR,,Favorite,ERROR
-1H,28,17,,Line,ERROR
-2H,43,29,,OverUnder,ERROR
-OT,NA,NA,,ML1,ERROR
-TOTAL,71,46,,ML2,ERROR
-FGM,24,13,,1,ERROR
-FGA,65,49,,2,ERROR
-3M,9,3,,,
-3A,27,22,,,
-FTM,14,17,,,
-FTA,19,27,,71,46
-REB,53,33,,,
-OREB,21,10,,,
-DREB,32,23,,,
-AST,15,6,,,
-STL,5,4,,,
-BLK,1,4,,,
-TURN,14,15,,,
-POTURN,9,9,,,
-FBPTS,0,6,,,
-PTSPNT,24,18,,,
-FOUL,22,18,,,
+Teams,Albany,Holy Cross,,DD,15
+Acronyms,UALB,HC,,YYYY,2026
+Conference,American East,Patriot,,,
+Coach,Dwayne Killings,Dave Paulsen,,,
+Location,"Worcester, MA","Worcester, MA",,,
+HAN,AWAY,HOME,,ID,HC-UALB-11-15
+ML,-170,142,,Location,"Worcester, MA"
+Spread,-3.5,3.5,,Home,Holy Cross
+OverUnder,144.5,144.5,,Favorite,UALB
+1H,35,31,,Line,-3.5
+2H,27,29,,OverUnder,144.5
+OT,NA,NA,,ML1,142
+TOTAL,62,60,,ML2,-170
+FGM,25,24,,1,Holy Cross
+FGA,66,68,,2,Albany
+3M,5,4,,,
+3A,28,22,,,
+FTM,7,8,,,
+FTA,17,20,,62,60
+REB,52,44,,,
+OREB,14,14,,,
+DREB,38,30,,,
+AST,9,12,,,
+STL,8,7,,,
+BLK,5,0,,,
+TURN,14,10,,,
+POTURN,8,14,,,
+FBPTS,12,16,,,
+PTSPNT,40,38,,,
+FOUL,19,15,,,
 TECH,0,0,,,
 FLAG,0,0,,,
-LLEAD,27,6,,,
-PLEAD,85,12,,,
+LLEAD,11,1,,,
+PLEAD,96,1,,,
