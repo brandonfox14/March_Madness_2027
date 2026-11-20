@@ -1,20 +1,20 @@
 ,,,,,
 ,TEAM1,TEAM2,,MM,11
-Teams,Eastern Illinois,Vanderbilt,,DD,17
+Teams,Eastern Illinois,Vanderbilt,,DD,20
 Acronyms,EIU,VAN,,YYYY,2026
 Conference,Ohio Valley,SEC,,,
 Coach,Marty Simmons,Mark Byington,,,
-Location,"Nashville, TN","Nashville, TN",,,
-HAN,AWAY,HOME,,ID,EIU-VAN-11-17
-ML,NA,NA,,Location,"Nashville, TN"
-Spread,42.5,-42.5,,Home,Vanderbilt
-OverUnder,146.5,146.5,,Favorite,VAN
-1H,26,43,,Line,-42.5
-2H,24,53,,OverUnder,146.5
-OT,NA,NA,,ML1,NA
-TOTAL,50,96,,ML2,NA
-FGM,16,37,,1,Vanderbilt
-FGA,50,60,,2,Eastern Illinois
+Location,ERROR,ERROR,,,
+HAN,NEUTRAL,NEUTRAL,,ID,EIU-VAN-11-20
+ML,ERROR,ERROR,,Location,ERROR
+Spread,,,,Home,ERROR
+OverUnder,ERROR,ERROR,,Favorite,ERROR
+1H,26,43,,Line,ERROR
+2H,24,53,,OverUnder,ERROR
+OT,NA,NA,,ML1,ERROR
+TOTAL,50,96,,ML2,ERROR
+FGM,16,37,,1,ERROR
+FGA,50,60,,2,ERROR
 3M,6,12,,,
 3A,19,28,,,
 FTM,12,10,,,
