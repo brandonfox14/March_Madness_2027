@@ -1,36 +1,36 @@
 ,,,,,
 ,TEAM1,TEAM2,,MM,11
-Teams,Eastern Illinois,Vanderbilt,,DD,21
-Acronyms,EIU,VAN,,YYYY,2026
-Conference,Ohio Valley,SEC,,,
-Coach,Marty Simmons,Mark Byington,,,
-Location,ERROR,ERROR,,,
-HAN,NEUTRAL,NEUTRAL,,ID,EIU-VAN-11-21
-ML,ERROR,ERROR,,Location,ERROR
-Spread,,,,Home,ERROR
-OverUnder,ERROR,ERROR,,Favorite,ERROR
-1H,26,43,,Line,ERROR
-2H,24,53,,OverUnder,ERROR
-OT,NA,NA,,ML1,ERROR
-TOTAL,50,96,,ML2,ERROR
-FGM,16,37,,1,ERROR
-FGA,50,60,,2,ERROR
-3M,6,12,,,
-3A,19,28,,,
-FTM,12,10,,,
-FTA,18,13,,50,96
-REB,24,35,,,
-OREB,9,10,,,
-DREB,15,25,,,
-AST,10,24,,,
-STL,3,9,,,
-BLK,0,5,,,
-TURN,16,10,,,
-POTURN,5,23,,,
-FBPTS,8,19,,,
-PTSPNT,16,46,,,
-FOUL,14,19,,,
+Teams,Bryant,Massachusetts,,DD,17
+Acronyms,BRY,MASS,,YYYY,2026
+Conference,American East,A10,,,
+Coach,Jamion Christian,Frank Martin,,,
+Location,"Amherst, MA","Amherst, MA",,,
+HAN,AWAY,HOME,,ID,BRY-MASS-11-17
+ML,300,-400,,Location,"Amherst, MA"
+Spread,9.5,-9.5,,Home,Massachusetts
+OverUnder,141.5,141.5,,Favorite,MASS
+1H,21,28,,Line,-9.5
+2H,50,43,,OverUnder,141.5
+OT,12,8,,ML1,-400
+TOTAL,83,79,,ML2,300
+FGM,26,29,,1,Massachusetts
+FGA,64,61,,2,Bryant
+3M,13,3,,,
+3A,39,14,,,
+FTM,18,18,,,
+FTA,26,38,,83,79
+REB,38,47,,,
+OREB,12,17,,,
+DREB,26,30,,,
+AST,18,10,,,
+STL,7,4,,,
+BLK,0,1,,,
+TURN,11,17,,,
+POTURN,17,11,,,
+FBPTS,6,16,,,
+PTSPNT,22,48,,,
+FOUL,30,22,,,
 TECH,0,0,,,
 FLAG,0,0,,,
-LLEAD,3,46,,,
-PLEAD,3,89,,,
+LLEAD,6,9,,,
+PLEAD,32,48,,,
