@@ -1,36 +1,36 @@
 ,,,,,
 ,TEAM1,TEAM2,,MM,11
-Teams,Bryant,Massachusetts,,DD,17
-Acronyms,BRY,MASS,,YYYY,2026
-Conference,American East,A10,,,
-Coach,Jamion Christian,Frank Martin,,,
-Location,"Amherst, MA","Amherst, MA",,,
-HAN,AWAY,HOME,,ID,BRY-MASS-11-17
-ML,300,-400,,Location,"Amherst, MA"
-Spread,9.5,-9.5,,Home,Massachusetts
-OverUnder,141.5,141.5,,Favorite,MASS
-1H,21,28,,Line,-9.5
-2H,50,43,,OverUnder,141.5
-OT,12,8,,ML1,-400
-TOTAL,83,79,,ML2,300
-FGM,26,29,,1,Massachusetts
-FGA,64,61,,2,Bryant
-3M,13,3,,,
-3A,39,14,,,
-FTM,18,18,,,
-FTA,26,38,,83,79
-REB,38,47,,,
-OREB,12,17,,,
-DREB,26,30,,,
-AST,18,10,,,
-STL,7,4,,,
-BLK,0,1,,,
-TURN,11,17,,,
-POTURN,17,11,,,
-FBPTS,6,16,,,
-PTSPNT,22,48,,,
-FOUL,30,22,,,
-TECH,0,0,,,
+Teams,UNC Wilmington,LIU,,DD,23
+Acronyms,UNCW,LIU,,YYYY,2026
+Conference,CAA,NEC,,,
+Coach,Takayo Siddle,Rod Strickland,,,
+Location,ERROR,ERROR,,,
+HAN,NEUTRAL,NEUTRAL,,ID,LIU-UNCW-11-23
+ML,ERROR,ERROR,,Location,ERROR
+Spread,,,,Home,ERROR
+OverUnder,ERROR,ERROR,,Favorite,ERROR
+1H,48,51,,Line,ERROR
+2H,45,42,,OverUnder,ERROR
+OT,21,22,,ML1,ERROR
+TOTAL,114,115,,ML2,ERROR
+FGM,36,33,,1,ERROR
+FGA,72,66,,2,ERROR
+3M,10,22,,,
+3A,25,41,,,
+FTM,32,27,,,
+FTA,44,36,,114,115
+REB,50,27,,,
+OREB,21,7,,,
+DREB,29,20,,,
+AST,14,26,,,
+STL,8,10,,,
+BLK,3,6,,,
+TURN,17,12,,,
+POTURN,21,23,,,
+FBPTS,14,10,,,
+PTSPNT,52,16,,,
+FOUL,26,30,,,
+TECH,2,0,,,
 FLAG,0,0,,,
-LLEAD,6,9,,,
-PLEAD,32,48,,,
+LLEAD,13,8,,,
+PLEAD,65,26,,,
