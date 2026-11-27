@@ -1,36 +1,36 @@
 ,,,,,
 ,TEAM1,TEAM2,,MM,11
-Teams,Southern Miss,Grambling State,,DD,24
-Acronyms,USM,GRAM,,YYYY,2026
-Conference,Sun Belt,SWAC,,,
-Coach,Jay Ladner,Patrick Crarey II,,,
+Teams,Seton Hall,N.C. State,,DD,27
+Acronyms,HALL,NCSU,,YYYY,2026
+Conference,Big East,ACC,,,
+Coach,Shaheen Holloway,Justin Gainey,,,
 Location,ERROR,ERROR,,,
-HAN,NEUTRAL,NEUTRAL,,ID,GRAM-USM-11-24
+HAN,NEUTRAL,NEUTRAL,,ID,HALL-NCSU-11-27
 ML,ERROR,ERROR,,Location,ERROR
 Spread,,,,Home,ERROR
 OverUnder,ERROR,ERROR,,Favorite,ERROR
-1H,32,44,,Line,ERROR
-2H,43,31,,OverUnder,ERROR
-OT,28,25,,ML1,ERROR
-TOTAL,103,100,,ML2,ERROR
-FGM,31,29,,1,ERROR
-FGA,64,83,,2,ERROR
-3M,7,12,,,
-3A,19,34,,,
-FTM,34,30,,,
-FTA,49,46,,103,100
-REB,39,53,,,
-OREB,8,23,,,
-DREB,31,30,,,
-AST,13,19,,,
-STL,6,8,,,
-BLK,6,6,,,
-TURN,16,16,,,
-POTURN,17,21,,,
-FBPTS,15,13,,,
-PTSPNT,48,32,,,
-FOUL,33,35,,,
-TECH,1,1,,,
-FLAG,0,1,,,
-LLEAD,7,15,,,
-PLEAD,14,81,,,
+1H,30,29,,Line,ERROR
+2H,43,44,,OverUnder,ERROR
+OT,14,8,,ML1,ERROR
+TOTAL,87,81,,ML2,ERROR
+FGM,29,27,,1,ERROR
+FGA,55,57,,2,ERROR
+3M,5,4,,,
+3A,14,22,,,
+FTM,24,23,,,
+FTA,28,25,,87,81
+REB,29,29,,,
+OREB,11,13,,,
+DREB,18,16,,,
+AST,15,18,,,
+STL,6,5,,,
+BLK,2,0,,,
+TURN,14,16,,,
+POTURN,18,19,,,
+FBPTS,7,4,,,
+PTSPNT,36,42,,,
+FOUL,20,21,,,
+TECH,0,0,,,
+FLAG,0,0,,,
+LLEAD,6,6,,,
+PLEAD,44,44,,,
