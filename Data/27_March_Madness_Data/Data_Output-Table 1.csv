@@ -1,36 +1,36 @@
 ,,,,,
 ,TEAM1,TEAM2,,MM,11
-Teams,Seton Hall,N.C. State,,DD,27
-Acronyms,HALL,NCSU,,YYYY,2026
-Conference,Big East,ACC,,,
-Coach,Shaheen Holloway,Justin Gainey,,,
+Teams,Presbyterian,Tennessee Tech,,DD,28
+Acronyms,PRES,TNTC,,YYYY,2026
+Conference,Big South,Ohio Valley,,,
+Coach,Quinton Ferrell,Tobin Anderson,,,
 Location,ERROR,ERROR,,,
-HAN,NEUTRAL,NEUTRAL,,ID,HALL-NCSU-11-27
+HAN,NEUTRAL,NEUTRAL,,ID,PRES-TNTC-11-28
 ML,ERROR,ERROR,,Location,ERROR
 Spread,,,,Home,ERROR
 OverUnder,ERROR,ERROR,,Favorite,ERROR
-1H,30,29,,Line,ERROR
-2H,43,44,,OverUnder,ERROR
-OT,14,8,,ML1,ERROR
-TOTAL,87,81,,ML2,ERROR
-FGM,29,27,,1,ERROR
-FGA,55,57,,2,ERROR
-3M,5,4,,,
-3A,14,22,,,
-FTM,24,23,,,
-FTA,28,25,,87,81
-REB,29,29,,,
-OREB,11,13,,,
-DREB,18,16,,,
-AST,15,18,,,
-STL,6,5,,,
-BLK,2,0,,,
-TURN,14,16,,,
-POTURN,18,19,,,
-FBPTS,7,4,,,
-PTSPNT,36,42,,,
-FOUL,20,21,,,
+1H,36,51,,Line,ERROR
+2H,33,46,,OverUnder,ERROR
+OT,NA,NA,,ML1,ERROR
+TOTAL,69,97,,ML2,ERROR
+FGM,22,36,,1,ERROR
+FGA,52,69,,2,ERROR
+3M,7,11,,,
+3A,21,29,,,
+FTM,18,14,,,
+FTA,32,19,,69,97
+REB,35,37,,,
+OREB,9,11,,,
+DREB,26,26,,,
+AST,12,16,,,
+STL,3,9,,,
+BLK,3,1,,,
+TURN,15,6,,,
+POTURN,9,23,,,
+FBPTS,15,20,,,
+PTSPNT,26,48,,,
+FOUL,16,21,,,
 TECH,0,0,,,
 FLAG,0,0,,,
-LLEAD,6,6,,,
-PLEAD,44,44,,,
+LLEAD,0,32,,,
+PLEAD,0,99,,,
